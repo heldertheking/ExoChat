@@ -1,0 +1,62 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ExoChat//Development Roadmap//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:exochat-phase0-20261201@example.invalid
+DTSTAMP:20261123T071600Z
+DTSTART;VALUE=DATE:20261201
+DTEND;VALUE=DATE:20270101
+SUMMARY:ExoChat Phase 0 - Foundation
+DESCRIPTION:Monorepo, Spring Boot, PostgreSQL, jOOQ, Protobuf, Docker Compose, CI and authentication skeleton.
+END:VEVENT
+BEGIN:VEVENT
+UID:exochat-phase1-20270101@example.invalid
+DTSTAMP:20261123T071600Z
+DTSTART;VALUE=DATE:20270101
+DTEND;VALUE=DATE:20270301
+SUMMARY:ExoChat Phase 1 - Domain and messaging backend
+DESCRIPTION:Identity, communities, permissions, conversations, message persistence, transactional outbox and RabbitMQ.
+END:VEVENT
+BEGIN:VEVENT
+UID:exochat-phase2-20270301@example.invalid
+DTSTAMP:20261123T071600Z
+DTSTART;VALUE=DATE:20270301
+DTEND;VALUE=DATE:20270401
+SUMMARY:ExoChat Phase 2 - Realtime web alpha
+DESCRIPTION:React client, WebSocket delivery, presence, typing and reconnect synchronization.
+END:VEVENT
+BEGIN:VEVENT
+UID:exochat-phase3-20270401@example.invalid
+DTSTAMP:20261123T071600Z
+DTSTART;VALUE=DATE:20270401
+DTEND;VALUE=DATE:20270501
+SUMMARY:ExoChat Phase 3 - Private beta hardening
+DESCRIPTION:Moderation, attachments, rate limits, load tests, backups and security review.
+END:VEVENT
+BEGIN:VEVENT
+UID:exochat-phase4-20270501@example.invalid
+DTSTAMP:20261123T071600Z
+DTSTART;VALUE=DATE:20270501
+DTEND;VALUE=DATE:20270701
+SUMMARY:ExoChat Phase 4 - Extension foundations
+DESCRIPTION:Manifests, permissions, event catalogue, first-party extensions and SDK prototype.
+END:VEVENT
+BEGIN:VEVENT
+UID:exochat-phase5-20270701@example.invalid
+DTSTAMP:20261123T071600Z
+DTSTART;VALUE=DATE:20270701
+DTEND;VALUE=DATE:20270901
+SUMMARY:ExoChat Phase 5 - Activities and developer preview
+DESCRIPTION:Activity lifecycle, widgets, extension storage and developer documentation.
+END:VEVENT
+BEGIN:VEVENT
+UID:exochat-phase6-20270901@example.invalid
+DTSTAMP:20261123T071600Z
+DTSTART;VALUE=DATE:20270901
+DTEND;VALUE=DATE:20271201
+SUMMARY:ExoChat Phase 6 - Public beta and desktop
+DESCRIPTION:Desktop packaging, performance work, onboarding, public developer preview and conditional voice prototype.
+END:VEVENT
+END:VCALENDAR
