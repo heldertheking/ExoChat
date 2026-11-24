@@ -36,7 +36,7 @@ flowchart TB
     end
 
     subgraph Data["State and delivery infrastructure"]
-      PG[("PostgreSQL<br/>authoritative state")]
+      PG[("MariaDB<br/>authoritative state")]
       OUTBOX[("Transactional outbox")]
       MQ[("RabbitMQ<br/>domain event transport")]
       CACHE[("Valkey<br/>ephemeral presence/cache")]
@@ -91,7 +91,7 @@ sequenceDiagram
     participant C as Client
     participant API as Messaging API
     participant Z as Authorization
-    participant DB as PostgreSQL
+    participant DB as MariaDB
     participant O as Outbox publisher
     participant MQ as RabbitMQ
     participant RT as Realtime consumer
@@ -137,7 +137,7 @@ The client acknowledgement is tied to the database commit, not to email, journal
 Start with:
 - `exochat-api`: Spring Boot application
 - `exochat-worker`: outbox publisher and event consumers
-- PostgreSQL
+- MariaDB
 - RabbitMQ
 - Valkey
 - S3-compatible object storage
