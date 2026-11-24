@@ -9,7 +9,7 @@ DTSTAMP:20261123T071600Z
 DTSTART;VALUE=DATE:20261201
 DTEND;VALUE=DATE:20270101
 SUMMARY:ExoChat Phase 0 - Foundation
-DESCRIPTION:Monorepo, Spring Boot, PostgreSQL, jOOQ, Protobuf, Docker Compose, CI and authentication skeleton.
+DESCRIPTION:Monorepo, Spring Boot, MariaDB, Liquibase, jOOQ, Protobuf, Docker Compose, CI and authentication skeleton.
 END:VEVENT
 BEGIN:VEVENT
 UID:exochat-phase1-20270101@example.invalid

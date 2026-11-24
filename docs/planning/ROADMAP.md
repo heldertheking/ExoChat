@@ -12,7 +12,7 @@ Deliver:
 - Product requirements and MVP acceptance criteria
 - Monorepo and CI
 - Spring Boot application
-- PostgreSQL, Flyway and jOOQ
+- MariaDB, Liquibase and jOOQ
 - Protobuf toolchain
 - Docker Compose
 - Authentication skeleton

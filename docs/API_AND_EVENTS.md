@@ -89,7 +89,7 @@ Each consumer owns its queue and processing lifecycle. Use routing keys based on
 
 ## Delivery guarantees
 
-- PostgreSQL transaction writes the domain state and outbox record atomically.
+- MariaDB transaction writes the domain state and outbox record atomically.
 - Outbox publisher uses publisher confirms.
 - Consumers acknowledge only after safely completing work.
 - Assume at-least-once delivery.
@@ -100,4 +100,4 @@ Each consumer owns its queue and processing lifecycle. Use routing keys based on
 
 ## Event journal versus transport
 
-RabbitMQ is transport, not the permanent event archive. Store durable audit/history records in PostgreSQL or a purpose-built append-only store. Build user-facing activity feeds as projections with their own retention and privacy rules.
+RabbitMQ is transport, not the permanent event archive. Store durable audit/history records in MariaDB or a purpose-built append-only store. Build user-facing activity feeds as projections with their own retention and privacy rules.

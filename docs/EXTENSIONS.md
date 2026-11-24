@@ -59,7 +59,7 @@ Define a formal JSON Schema or protobuf manifest before implementation. The YAML
 - Treat third-party code as untrusted.
 - Default deny; grant only declared and approved capabilities.
 - Scope grants to a community, installation and, where appropriate, user.
-- Do not expose PostgreSQL credentials, RabbitMQ credentials or internal service tokens.
+- Do not expose MariaDB credentials, RabbitMQ credentials or internal service tokens.
 - Apply CPU, memory, execution-time and outbound-network limits.
 - Sign or otherwise verify published packages.
 - Support immediate revocation.

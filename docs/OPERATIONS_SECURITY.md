@@ -2,13 +2,13 @@
 
 ## Initial hosting
 
-Use Docker Compose for local development and the first small hosted environment. Prefer managed PostgreSQL and object storage when the cost is reasonable.
+Use Docker Compose for local development and the first small hosted environment. Prefer managed MariaDB and object storage when the cost is reasonable.
 
 Initial runtime:
 - Reverse proxy / TLS termination
 - Spring Boot API
 - Background worker
-- PostgreSQL
+- MariaDB
 - RabbitMQ
 - Valkey
 - S3-compatible object storage
@@ -28,7 +28,7 @@ Track:
 - RabbitMQ queue depth and oldest-message age
 - Outbox backlog
 - Consumer retry and dead-letter counts
-- PostgreSQL query latency and connection pool saturation
+- MariaDB query latency and connection pool saturation
 - Error rate and resource utilization
 
 ## Security baseline

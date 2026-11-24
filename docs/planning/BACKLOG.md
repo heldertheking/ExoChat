@@ -3,20 +3,25 @@
 Use these as initial GitHub issues. Keep tasks small enough to complete and verify independently.
 
 ## Foundation
-- [ ] Create monorepo and module conventions
-- [ ] Add Spring Boot application and health endpoints
-- [ ] Configure PostgreSQL and Flyway
-- [ ] Configure jOOQ code generation
-- [ ] Add Protobuf build and lint pipeline
-- [ ] Add Docker Compose for local dependencies
-- [ ] Add CI build and test workflow
+- [x] Create monorepo and module conventions (`docs/NEW_MODULE.md`)
+- [x] Add Spring Boot application and health endpoints (gRPC `HealthService`)
+- [x] Configure MariaDB and Liquibase (ADR-009)
+- [x] Configure jOOQ code generation
+- [x] Add Protobuf build
+- [ ] Add Protobuf lint and breaking-change check (buf)
+- [x] Add Docker Compose for local dependencies
+- [x] Add CI build and test workflow (`.github/workflows/ci.yml`, includes JaCoCo and a jOOQ drift check)
 - [ ] Add OpenTelemetry instrumentation
+- [ ] Add Actuator and Prometheus metrics endpoint
 
 ## Identity
-- [ ] Define user and profile schema
+- [ ] Define user and profile schema (`user` table done; accounts pending)
+- [ ] Write authentication ADR (sessions vs tokens, per-device sessions, credential storage, how a request resolves to a `UserName`/`AccountName`)
+- [ ] Define account schema and implement `AccountService` (create/update/delete)
 - [ ] Implement registration
 - [ ] Implement login and refresh-token rotation
 - [ ] Implement per-device session listing and revocation
+- [ ] Implement account switching for multiple accounts per user
 - [ ] Add rate limits to authentication endpoints
 
 ## Communities and permissions
