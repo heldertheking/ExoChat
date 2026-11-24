@@ -23,6 +23,7 @@ h2 = "2.5.252"
 liquibase = "5.0.4"
 mariadb = "4.0.0"
 picocli = "4.7.7"
+jacoco = "0.8.14"
 
 [libraries]
 grpc-netty = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }

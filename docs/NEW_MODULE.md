@@ -59,6 +59,8 @@ Rules of thumb:
 - Modules that use Spring or gRPC versions should import the platform: `implementation platform(project(':exochat-bom'))`.
 - Add new third-party dependencies to the catalog; if they must be version-aligned for the app, add a constraint to `exochat-bom`.
 
+Coverage needs nothing extra: the root `build.gradle` applies JaCoCo to every module with the `java` plugin and includes it in `./gradlew coverageReport`. If the module contains generated sources, add their class patterns to `coverageExcludes` in the root `build.gradle`.
+
 ## 4. Wire it into consumers
 
 In the consuming module (usually `app/build.gradle`):

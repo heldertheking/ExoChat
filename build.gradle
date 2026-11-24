@@ -1,10 +1,82 @@
 plugins {
     alias(libs.plugins.spring.boot) apply false
     alias(libs.plugins.protobuf) apply false
+    id 'jacoco'
+}
+
+// Generated code is not worth measuring: jOOQ classes (committed under libs/db/src/main/jooq),
+// protobuf/gRPC stubs and ANTLR parsers.
+ext.coverageExcludes = [
+        'com/heldertheking/exochat/db/schema/**',          // jOOQ
+        'com/heldertheking/exochat/*/v1alpha1/**',         // protobuf / gRPC stubs
+        'com/heldertheking/quela/QueryLanguage*',          // ANTLR QueryLanguage lexer/parser/visitor
+        'com/heldertheking/quela/OrderByLanguage*',        // ANTLR OrderByLanguage lexer/parser/visitor
+]
+
+repositories {
+    mavenCentral()
+}
+
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
 }
 
 subprojects {
     repositories {
         mavenCentral()
     }
+
+    // Every module with Java code gets a JaCoCo report after its tests.
+    plugins.withId('java') {
+        apply plugin: 'jacoco'
+
+        jacoco {
+            toolVersion = rootProject.libs.versions.jacoco.get()
+        }
+
+        tasks.withType(Test).configureEach {
+            finalizedBy 'jacocoTestReport'
+        }
+
+        tasks.named('jacocoTestReport', JacocoReport) {
+            dependsOn tasks.named('test')
+            reports {
+                xml.required = true   // for CI / SonarQube / Codecov
+                html.required = true  // build/reports/jacoco/test/html/index.html
+                csv.required = false
+            }
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: rootProject.ext.coverageExcludes)
+            }))
+        }
+    }
+}
+
+// One combined report for the whole build: ./gradlew coverageReport
+// Output: build/reports/jacoco/aggregate/html/index.html (+ aggregate.xml)
+tasks.register('coverageReport', JacocoReport) {
+    group = 'verification'
+    description = 'Runs all tests and generates one combined JaCoCo report for all modules.'
+
+    def javaProjects = subprojects.findAll { it.file('src').exists() && !it.path.endsWith('exochat-bom') }
+
+    dependsOn javaProjects.collect { "${it.path}:test" }
+
+    executionData.setFrom(files(javaProjects.collect {
+        it.layout.buildDirectory.file('jacoco/test.exec')
+    }).filter { true })
+    classDirectories.setFrom(files(javaProjects.collect { p ->
+        fileTree(dir: p.layout.buildDirectory.dir('classes/java/main'), exclude: coverageExcludes)
+    }))
+    sourceDirectories.setFrom(files(javaProjects.collect { it.file('src/main/java') }))
+
+    reports {
+        xml.required = true
+        xml.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/aggregate.xml')
+        html.required = true
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco/aggregate/html')
+    }
+
+    // modules that never ran tests simply have no exec file
+    onlyIf { executionData.files.any { it.exists() } }
 }

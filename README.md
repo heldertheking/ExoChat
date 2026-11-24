@@ -82,7 +82,17 @@ Gradle multi-module build (Java 25, Spring Boot 4). Each module has its own READ
 docker compose up -d
 ./gradlew build        # app tests need the compose MariaDB
 ./gradlew :app:bootRun
+./gradlew coverageReport   # tests + combined JaCoCo report
 ```
+
+### Code coverage
+
+JaCoCo is applied to every Java module from the root `build.gradle`; no per-module setup is needed.
+
+- Per module (runs after `test`): `<module>/build/reports/jacoco/test/html/index.html` and `jacocoTestReport.xml`.
+- Whole build: `./gradlew coverageReport` writes `build/reports/jacoco/aggregate/html/index.html` and `aggregate.xml` (the XML is what CI or SonarQube/Codecov should consume).
+- Generated code (jOOQ, protobuf/gRPC stubs, ANTLR parsers) is excluded via `coverageExcludes` in the root `build.gradle`. Add patterns there when a new generator is introduced.
+- Modules without tests (`libs/db`, `libs/proto`) produce no report. The JaCoCo version is `jacoco` in `gradle/libs.versions.toml`.
 
 ## Development philosophy
 
