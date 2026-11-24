@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+    labels: [ "type:chore", "area:infrastructure" ]
+    groups:
+      actions:
+        patterns: [ "*" ]
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+    labels: [ "type:chore", "area:infrastructure" ]
+    groups:
+      gradle-minor-patch:
+        update-types: [ minor, patch ]
