@@ -8,16 +8,33 @@ gRPC messages carry `name` and `parent` as [AIP-122](https://google.aip.dev/122)
 
 ## Names
 
-| Class | Pattern | Persistence id |
+All ids are UUIDv7 (ADR-011); `-` in the last segment is the wildcard (a wildcard parent requires a wildcard child).
+
+| Package | Class | Pattern |
 |---|---|---|
-| `user.UserName` | `users/{uuidv7}` (`users/-` is the wildcard) | `UUID` (v7), the `user.id` column |
+| `user` | `UserName` | `users/{user}` |
+| `user` | `AccountName` | `users/{user}/accounts/{account}` |
+| `user` | `RelationshipName` | `users/{user}/accounts/{account}/relationships/{relationship}` |
+| `server` | `ServerName` | `servers/{server}` |
+| `server` | `MemberName` | `servers/{server}/members/{member}` |
+| `server` | `RoleName` | `servers/{server}/roles/{role}` |
+| `server` | `InviteName` | `servers/{server}/invites/{invite}` |
+| `channel` | `ChannelName` | `channels/{channel}` (DIRECT, GROUP_DIRECT, SERVER_TEXT, SERVER_VOICE) |
+| `channel` | `MessageName` | `channels/{channel}/messages/{message}`: the only way to address a message |
+| `channel` | `ParticipantName` | `channels/{channel}/participants/{participant}` (direct channels) |
+| `channel` | `OverwriteName` | `channels/{channel}/overwrites/{overwrite}` (server channels) |
+
+Only the names exist so far, not the domain objects. A member or participant refers to its account with the string `users/{user}/accounts/{account}` (parse it with `AccountName.fromName`); that is a reference, not part of the member name.
 
 ```java
-UserName.of(UuidV7.next());           // users/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b
-UserName.fromName("users/0190a1b2-...");  // strict: lowercase UUIDv7 only, else ValidationException (an IllegalArgumentException)
-UserName.wildcard();                  // users/-
-ResourceNames.match(s).when(UserName::fromName).orElseThrow();
+var user = UserName.of(UuidV7.next());
+var account = AccountName.of(user, UuidV7.next());   // users/<uuid>/accounts/<uuid>
+AccountName.fromName(account.toString());            // strict: lowercase UUIDv7 only, else ValidationException
+AccountName.wildcard(UserName.wildcard());           // users/-/accounts/-
+ResourceNames.match(s).when(UserName::fromName).when(ServerName::fromName).orElseThrow();
 ```
+
+Top-level names extend `id.AbstractUuidResourceName`, nested names `id.AbstractUuidSubResourceName` (both enforce UUIDv7 and do the parsing). To add a name, copy a similar class: the template, the variable name, `of`, `wildcard` and `fromName`.
 
 ## UuidV7
 
@@ -41,4 +58,4 @@ Use the same `<domain>` names as the proto packages (`user`, `health`, ...).
 
 ## Build and test
 
-`./gradlew :libs:api:test`. Use `user/UserName` as the template for new top-level names; for nested names extend `AbstractSubResourceName`.
+`./gradlew :libs:api:test`. Use `user/UserName` (top-level) and `user/AccountName` (nested) as templates for new names.
