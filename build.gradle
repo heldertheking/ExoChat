@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.spring.boot) apply false
     alias(libs.plugins.protobuf) apply false
+    alias(libs.plugins.errorprone) apply false
     id 'jacoco'
 }
 
@@ -36,6 +37,32 @@ subprojects {
 
         tasks.withType(Test).configureEach {
             finalizedBy 'jacocoTestReport'
+        }
+
+        // Null safety for all code under com.heldertheking: everything is treated as @NullMarked
+        // (no package-info.java needed); annotate with @Nullable where null is allowed, or with
+        // @NullUnmarked on a class/package to opt out. Tests are exempt.
+        apply plugin: 'net.ltgt.errorprone'
+
+        dependencies {
+            errorprone rootProject.libs.errorprone.core
+            errorprone rootProject.libs.nullaway
+        }
+
+        tasks.withType(JavaCompile).configureEach {
+            options.compilerArgs += ['--should-stop=ifError=FLOW', '-XDaddTypeAnnotationsToSymbol=true']
+            options.errorprone {
+                disableWarningsInGeneratedCode = true
+                // generated code: protobuf/gRPC, ANTLR (build/generated*) and committed jOOQ (src/main/jooq)
+                excludedPaths = '.*/(build/generated.*|src/main/jooq/.*)'
+                check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+                option('NullAway:AnnotatedPackages', 'com.heldertheking')
+                option('NullAway:JSpecifyMode', 'true')
+                option('NullAway:CheckContracts', 'true')
+            }
+            if (name.toLowerCase().contains('test')) {
+                options.errorprone.disable('NullAway')
+            }
         }
 
         tasks.named('jacocoTestReport', JacocoReport) {

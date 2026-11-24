@@ -40,4 +40,4 @@ If part of a filter cannot be expressed in SQL, wrap the query in a `PageSpliter
 
 ## Build and test
 
-`./gradlew :libs:query-language:test` (H2 in tests, no Docker needed). ErrorProne + NullAway (JSpecify mode) are errors; tests are exempt from NullAway. ANTLR is `antlr` scope only, consumers get just the runtime.
+`./gradlew :libs:query-language:test` (H2 in tests, no Docker needed). NullAway runs through the shared root configuration (see `docs/NEW_MODULE.md`). ANTLR is `antlr` scope only, consumers get just the runtime.

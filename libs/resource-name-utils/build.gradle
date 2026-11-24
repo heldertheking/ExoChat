@@ -1,7 +1,6 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    alias(libs.plugins.errorprone)
 }
 
 group = 'com.heldertheking'
@@ -28,22 +27,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation libs.assertj
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    errorprone libs.errorprone.core
-    errorprone libs.nullaway
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.errorprone {
-        disableWarningsInGeneratedCode = true
-        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        option('NullAway:AnnotatedPackages', 'com.heldertheking')
-    }
-    if (name.toLowerCase().contains('test')) {
-        options.errorprone.disable('NullAway')
-    }
 }

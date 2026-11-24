@@ -1,6 +1,6 @@
 # Adding a new Gradle module
 
-Use `libs/api` (plain library) and `libs/query-language` (library with ErrorProne/NullAway) as references. Library modules go under `libs/`, deployable apps at the top level (`app/`).
+Use `libs/api` (plain library) and `libs/query-language` (library with ANTLR) as references. Library modules go under `libs/`, deployable apps at the top level (`app/`).
 
 ## 1. Create the folders
 
@@ -55,7 +55,7 @@ tasks.named('test') {
 Rules of thumb:
 
 - Take versions from `gradle/libs.versions.toml` (add a new entry there, never a hard-coded version). Reference other modules as `project(':libs:<other>')`.
-- Optional but recommended for main code: the `errorprone` plugin with NullAway as an error and `@NullMarked` package-info files (copy the setup from `libs/query-language/build.gradle`).
+- Null safety needs nothing in the module: the root `build.gradle` applies ErrorProne and NullAway (JSpecify mode, errors in main code, tests exempt) to every module with the `java` plugin. All code under `com.heldertheking` is treated as null-marked, so do **not** add `package-info.java` / `@NullMarked`. Use `@Nullable` where null is allowed and `@NullUnmarked` on a class or package to opt out. Generated sources are excluded via `excludedPaths` in the root `build.gradle`; extend it if you add a generator.
 - Modules that use Spring or gRPC versions should import the platform: `implementation platform(project(':exochat-bom'))`.
 - Add new third-party dependencies to the catalog; if they must be version-aligned for the app, add a constraint to `exochat-bom`.
 

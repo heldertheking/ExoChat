@@ -9,8 +9,8 @@ Typed helpers for [AIP-122](https://google.aip.dev/122) resource names such as `
 - `ResourceNames.match(string)` tries several types in order (`.when(EmployeeName::fromName, ...)`) instead of string sniffing; see its Javadoc.
 - `ResourceNotFoundException` for names that parse but do not exist.
 
-Built on `com.google.api:api-common` `PathTemplate`. Packages are `@NullMarked`.
+Built on `com.google.api:api-common` `PathTemplate`. Null-marked by the shared NullAway configuration in the root build.
 
 ## Build and test
 
-`./gradlew :libs:resource-name-utils:test`. ErrorProne + NullAway run as errors in main code. Pure Java, no Spring.
+`./gradlew :libs:resource-name-utils:test`. Pure Java, no Spring.

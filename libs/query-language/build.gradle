@@ -1,7 +1,6 @@
 plugins {
     id 'java-library'
     id 'antlr'
-    alias(libs.plugins.errorprone)
 }
 
 java {
@@ -33,9 +32,6 @@ dependencies {
     testImplementation libs.mockito
     testRuntimeOnly libs.h2
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    errorprone libs.errorprone.core
-    errorprone libs.nullaway
 }
 
 generateGrammarSource {
@@ -52,19 +48,4 @@ processResources {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['--should-stop=ifError=FLOW', '-XDaddTypeAnnotationsToSymbol=true']
-    options.errorprone {
-        disableWarningsInGeneratedCode = true
-        excludedPaths = '.*/build/generated.*'
-        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        option('NullAway:AnnotatedPackages', 'com.heldertheking')
-        option('NullAway:JSpecifyMode', 'true')
-        option('NullAway:CheckContracts', 'true')
-    }
-    if (name.toLowerCase().contains('test')) {
-        options.errorprone.disable('NullAway')
-    }
 }
