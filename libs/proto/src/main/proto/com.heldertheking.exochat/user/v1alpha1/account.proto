@@ -34,7 +34,7 @@ service AccountService {
 }
 
 message CreateAccountRequest {
-  string parent = 1 [(buf.validate.field).string.pattern = "^users/[0-9]+$"];
+  string parent = 1 [(buf.validate.field).string.pattern = "^users/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"];
   Account account = 2;
 }
 
@@ -45,7 +45,7 @@ message UpdateAccountRequest {
 }
 
 message DeleteAccountRequest {
-  string name = 1 [(buf.validate.field).string.pattern = "^users/[0-9]+/accounts/(-|[0-9]+)$"];
+  string name = 1 [(buf.validate.field).string.pattern = "^users/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/accounts/(-|[0-9]+)$"];
 }
 
 message Account {

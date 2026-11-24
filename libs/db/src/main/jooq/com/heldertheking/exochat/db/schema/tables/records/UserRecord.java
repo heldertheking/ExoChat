@@ -7,6 +7,7 @@ package com.heldertheking.exochat.db.schema.tables.records;
 import com.heldertheking.exochat.db.schema.tables.User;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -24,7 +25,7 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> {
     /**
      * Setter for <code>user.id</code>.
      */
-    public UserRecord setId(@NonNull String value) {
+    public UserRecord setId(@NonNull UUID value) {
         set(0, value);
         return this;
     }
@@ -33,8 +34,8 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> {
      * Getter for <code>user.id</code>.
      */
     @NonNull
-    public String getId() {
-        return (String) get(0);
+    public UUID getId() {
+        return (UUID) get(0);
     }
 
     /**
@@ -74,7 +75,7 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> {
 
     @Override
     @NonNull
-    public Record1<String> key() {
+    public Record1<UUID> key() {
         return (Record1) super.key();
     }
 
@@ -92,7 +93,7 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> {
     /**
      * Create a detached, initialised UserRecord
      */
-    public UserRecord(@NonNull String id, @NonNull String displayName, LocalDateTime createTime) {
+    public UserRecord(@NonNull UUID id, @NonNull String displayName, LocalDateTime createTime) {
         super(User.USER);
 
         setId(id);

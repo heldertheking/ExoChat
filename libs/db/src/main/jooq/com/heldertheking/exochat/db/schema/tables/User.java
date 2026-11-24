@@ -9,6 +9,7 @@ import com.heldertheking.exochat.db.schema.tables.records.UserRecord;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.UUID;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -54,7 +55,7 @@ public class User extends TableImpl<UserRecord> {
     /**
      * The column <code>user.id</code>.
      */
-    public final TableField<UserRecord, String> ID = createField(DSL.name("id"), SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<UserRecord, UUID> ID = createField(DSL.name("id"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
      * The column <code>user.display_name</code>.

@@ -19,7 +19,7 @@ DB test pattern (see `user/UserTableTest`): a narrow `@SpringBootTest` context i
 
 ## Depends on
 
-`libs:proto` (contracts), `libs:db` (schema + jOOQ), `libs:query-language` (list endpoints), `exochat-bom`. `libs:resource-name-utils` is not wired in yet; add it when the first resource-named API lands.
+`libs:api` (resource names, `UuidV7`), `libs:proto` (contracts), `libs:db` (schema + jOOQ), `libs:query-language` (list endpoints), `exochat-bom`. `libs:resource-name-utils` comes in transitively through `libs:api`.
 
 ## Adding a feature
 

@@ -17,7 +17,7 @@ Protocol Buffers contracts and generated gRPC/Java stubs. Protobuf is the canoni
 
 - Resource oriented, Google AIP style: `name`/`parent` are resource names (see `libs/resource-name-utils`); list calls use `filter`, `order_by`, `page_size`, `page_token` (see `libs/query-language`).
 - New APIs start at `v1alpha1`; breaking changes need a new version package.
-- Validation via protovalidate annotations.
+- Validation via protovalidate annotations. User names are `users/{uuidv7}` (lowercase canonical form, see `libs/api` `UserName`).
 
 ## Build
 
