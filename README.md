@@ -39,7 +39,7 @@ ExoChat aims to make communities more than chat rooms: a flexible home for conve
 |---|---|
 | Backend | Java 25 + Spring Boot |
 | Database access | jOOQ |
-| Database | PostgreSQL + Flyway |
+| Database | MariaDB 11.4 + Liquibase (see ADR-009) |
 | API contracts | Protocol Buffers |
 | Service API | gRPC where appropriate |
 | Browser realtime | WebSocket |
@@ -60,9 +60,27 @@ ExoChat aims to make communities more than chat rooms: a flexible home for conve
 - `docs/EXTENSIONS.md` — extension platform and security model
 - `docs/OPERATIONS_SECURITY.md` — deployment, reliability and security
 - `docs/DECISIONS.md` — initial architecture decision records
-- `planning/ROADMAP.md` — phased roadmap and exit criteria
-- `planning/BACKLOG.md` — starter engineering backlog
-- `planning/ROADMAP.ics` — proposed milestone calendar
+- `docs/planning/ROADMAP.md` — phased roadmap and exit criteria
+- `docs/planning/BACKLOG.md` — starter engineering backlog
+- `docs/planning/ROADMAP.ics` — proposed milestone calendar
+
+## Code layout and quick start
+
+Gradle multi-module build (Java 25, Spring Boot 4). Each module has its own README.
+
+- [`app/`](app/README.md): Spring Boot application (gRPC server)
+- [`libs/proto/`](libs/proto/README.md): protobuf contracts and gRPC stubs
+- [`libs/db/`](libs/db/README.md): Liquibase changelogs and generated jOOQ code
+- [`libs/query-language/`](libs/query-language/README.md): filter / order-by / pagination language on top of jOOQ
+- [`libs/resource-name-utils/`](libs/resource-name-utils/README.md): AIP-122 resource names
+- [`exochat-bom/`](exochat-bom/README.md): dependency platform
+- [`docker/`](docker/README.md): local MariaDB
+
+```
+docker compose up -d
+./gradlew build        # app tests need the compose MariaDB
+./gradlew :app:bootRun
+```
 
 ## Development philosophy
 
@@ -82,7 +100,7 @@ Do not start with Kubernetes, a fleet of microservices, voice/video, federation 
 
 ## Roadmap
 
-See [planning/ROADMAP.md](planning/ROADMAP.md) for phases and exit criteria, [planning/BACKLOG.md](planning/BACKLOG.md) for the starter backlog and [planning/ROADMAP.ics](planning/ROADMAP.ics) for an importable calendar. Phases map 1:1 to GitHub milestones; work is tracked on the **ExoChat — Development** GitHub Project.
+See [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md) for phases and exit criteria, [docs/planning/BACKLOG.md](docs/planning/BACKLOG.md) for the starter backlog and [docs/planning/ROADMAP.ics](docs/planning/ROADMAP.ics) for an importable calendar. Phases map 1:1 to GitHub milestones; work is tracked on the **ExoChat — Development** GitHub Project.
 
 ## Contributing
 

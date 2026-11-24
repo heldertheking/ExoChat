@@ -1,0 +1,18 @@
+syntax = 'proto3';
+
+package com.heldertheking.exochat.health.v1alpha1;
+
+option java_multiple_files = true;
+option java_package = "com.heldertheking.exochat.health.v1alpha1";
+option java_outer_classname = "HealthProto";
+
+service HealthService {
+  // Reports whether the server is up.
+  rpc Check(CheckRequest) returns (CheckResponse);
+}
+
+message CheckRequest {}
+
+message CheckResponse {
+  string status = 1;
+}

@@ -1,0 +1,135 @@
+// The Liquibase Gradle Plugin (v3.x) accesses liquibase.Scope eagerly at plugin-apply
+// time, so Liquibase and the JDBC driver must be on the *buildscript* classpath as well
+// as in liquibaseRuntime. The buildscript block cannot read the version catalog, so keep
+// these in sync with gradle/libs.versions.toml (liquibase, mariadb, picocli).
+// picocli is an optional dependency of liquibase-core 5.x and must be declared explicitly.
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.liquibase:liquibase-core:5.0.4'
+        classpath 'org.mariadb.jdbc:mariadb-java-client:4.0.0'
+        classpath 'info.picocli:picocli:4.7.7'
+    }
+}
+
+plugins {
+    id 'java-library'
+    alias(libs.plugins.jooq.codegen)
+    alias(libs.plugins.liquibase)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+    }
+}
+
+// Local development database coordinates (see docker-compose.yml). Code generation runs
+// against the local MariaDB - the build itself never needs Docker.
+def jdbcUrl = System.getenv('JDBC_URL') ?: 'jdbc:mariadb://localhost:3308/exochat'
+def jdbcUser = System.getenv('JDBC_USER') ?: 'exochat'
+def jdbcPassword = System.getenv('JDBC_PASSWORD') ?: 'exoch4t'
+
+// Applies pending Liquibase changesets before jOOQ introspects the DB, so the generated
+// code always matches the latest changelog. `update` is idempotent.
+liquibase {
+    activities {
+        main {
+            // Resources root as searchPath so recorded filenames ("db/changelog/v1/...")
+            // match what Spring Boot records at runtime (classpath:db/changelog/...).
+            searchPath project.file('src/main/resources').absolutePath
+            changelogFile 'db/changelog/db.changelog-master.yaml'
+            // Same table names as spring.liquibase.* in the app, so jooqCodegen and
+            // bootRun share one changelog history.
+            databaseChangelogTableName 'ec_databasechangelog'
+            databaseChangelogLockTableName 'ec_databasechangeloglock'
+            url jdbcUrl
+            username jdbcUser
+            password jdbcPassword
+            logLevel 'WARNING'
+        }
+    }
+    runList = 'main'
+}
+
+// Deliberate, one-off task run after a schema change; NOT wired into compileJava.
+// Normal builds compile the committed sources under src/main/jooq.
+tasks.named('jooqCodegen') {
+    dependsOn 'update'
+}
+
+dependencies {
+    api libs.jooq
+    api libs.jspecify
+    api libs.liquibase.core
+    runtimeOnly libs.mariadb.jdbc
+
+    jooqCodegen libs.mariadb.jdbc
+    jooqCodegen 'org.jooq:jooq-codegen:' + libs.versions.jooq.get()
+    jooqCodegen 'org.jooq:jooq-meta:' + libs.versions.jooq.get()
+    jooqCodegen libs.jooq
+
+    liquibaseRuntime libs.liquibase.core
+    liquibaseRuntime libs.mariadb.jdbc
+    liquibaseRuntime 'org.slf4j:slf4j-simple:' + libs.versions.slf4j.get()
+    liquibaseRuntime 'info.picocli:picocli:' + libs.versions.picocli.get()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/jooq'
+        }
+    }
+}
+
+jooq {
+    configuration {
+        jdbc {
+            driver = 'org.mariadb.jdbc.Driver'
+            url = jdbcUrl
+            user = jdbcUser
+            password = jdbcPassword
+        }
+        generator {
+            database {
+                name = 'org.jooq.meta.mariadb.MariaDBDatabase'
+                // Generate the schema as the jOOQ default schema so rendered SQL has
+                // unqualified table names and runs against whichever database the JDBC URL
+                // selects (exochat or exochat_test).
+                schemata {
+                    schema {
+                        inputSchema = 'exochat'
+                        outputSchemaToDefault = true
+                    }
+                }
+                excludes = 'exochat\\.ec_databasechangelog.*'
+                includeRoutines = false
+                forcedTypes {
+                    forcedType {
+                        name = 'BOOLEAN'
+                        includeTypes = 'tinyint\\(1\\)'
+                    }
+                }
+            }
+            generate {
+                defaultCatalog = false
+                defaultSchema = false
+                routines = false
+                triggers = false
+                globalRoutineReferences = false
+                fluentSetters = true
+                nullableAnnotation = true
+                nullableAnnotationType = 'org.jspecify.annotations.Nullable'
+                nonnullAnnotation = true
+                nonnullAnnotationType = 'org.jspecify.annotations.NonNull'
+            }
+            target {
+                packageName = 'com.heldertheking.exochat.db.schema'
+                directory = 'src/main/jooq'
+            }
+        }
+    }
+}

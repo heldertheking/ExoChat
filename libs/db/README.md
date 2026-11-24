@@ -1,0 +1,22 @@
+# libs/db
+
+Database schema (Liquibase) and the generated, **committed** jOOQ classes for MariaDB.
+
+## Layout
+
+- `src/main/resources/db/changelog/db.changelog-master.yaml` includes `v1/NNN-*.yaml` changelogs. Changelog tables are named `ec_databasechangelog` / `ec_databasechangeloglock` (same in the app config and here).
+- `src/main/jooq/...` is the generated code (`com.heldertheking.exochat.db.schema`). It is a source dir, so normal builds never need a database.
+
+## Changing the schema
+
+1. `docker compose up -d` (MariaDB on `localhost:3308`).
+2. Add a new changelog `db/changelog/v1/00N-<what>.yaml` and include it in the master file. Never edit an applied changeset.
+3. `./gradlew :libs:db:jooqCodegen`. It first runs Liquibase `update` against the dev DB, then regenerates `src/main/jooq`.
+4. Commit the changelog and the generated code together.
+
+The connection comes from `JDBC_URL`, `JDBC_USER`, `JDBC_PASSWORD` (defaults match docker-compose: `jdbc:mariadb://localhost:3308/exochat`, `exochat` / `exoch4t`). Code is generated into the default schema so SQL is unqualified and also works against `exochat_test`. `tinyint(1)` becomes `BOOLEAN`; jSpecify nullability annotations are generated.
+
+## Gotchas
+
+- Liquibase and the MariaDB driver are also on the `buildscript` classpath (the plugin needs them at apply time). Keep those versions in sync with `gradle/libs.versions.toml`.
+- Tables so far: `user` (`id`, `display_name`, `create_time`).

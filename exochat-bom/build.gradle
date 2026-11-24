@@ -1,0 +1,24 @@
+plugins {
+    id 'java-platform'
+}
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    api platform("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}")
+    api platform("org.springframework.grpc:spring-grpc-dependencies:${libs.versions.spring.grpc.get()}")
+
+    constraints {
+        api libs.grpc.netty
+        api libs.grpc.protobuf
+        api libs.grpc.stub
+        api libs.protobuf.java
+        api libs.jakarta.annotation
+        api libs.protovalidate
+        api libs.google.common.protos
+
+        api project(':libs:proto')
+    }
+}

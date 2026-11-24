@@ -1,0 +1,49 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.errorprone)
+}
+
+group = 'com.heldertheking'
+version = '0.1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+dependencies {
+    api libs.guava
+    api libs.api.common
+    api libs.jspecify
+
+    testImplementation platform(libs.junit.bom)
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation libs.assertj
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    errorprone libs.errorprone.core
+    errorprone libs.nullaway
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        disableWarningsInGeneratedCode = true
+        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        option('NullAway:AnnotatedPackages', 'com.heldertheking')
+    }
+    if (name.toLowerCase().contains('test')) {
+        options.errorprone.disable('NullAway')
+    }
+}

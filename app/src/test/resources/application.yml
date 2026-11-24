@@ -1,0 +1,22 @@
+# Shadows src/main/resources/application.yml during tests.
+# Tests run against the "exochat_test" database from docker-compose.yml
+# (start it with `docker compose up -d`); never against the dev database.
+spring:
+  application:
+    name: exochat
+  grpc:
+    server:
+      port: 0
+  datasource:
+    url: ${JDBC_URL:jdbc:mariadb://localhost:3308/exochat_test}
+    username: ${JDBC_USER:exochat}
+    password: ${JDBC_PASSWORD:exoch4t}
+    hikari:
+      # Every distinct @SpringBootTest configuration gets its own cached context and pool;
+      # keep pools small so many contexts in one JVM do not exhaust max_connections.
+      maximum-pool-size: 3
+      minimum-idle: 1
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    database-change-log-table: ec_databasechangelog
+    database-change-log-lock-table: ec_databasechangeloglock

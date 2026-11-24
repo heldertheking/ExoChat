@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: exochat
+  grpc:
+    server:
+      port: 9090
+  datasource:
+    # Defaults match docker-compose.yml (database "exochat"); override via env.
+    url: ${JDBC_URL:jdbc:mariadb://localhost:3308/exochat}
+    username: ${JDBC_USER:exochat}
+    password: ${JDBC_PASSWORD:exoch4t}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    database-change-log-table: ec_databasechangelog
+    database-change-log-lock-table: ec_databasechangeloglock

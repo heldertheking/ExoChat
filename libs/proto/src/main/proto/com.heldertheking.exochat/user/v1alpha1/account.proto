@@ -1,0 +1,56 @@
+syntax = 'proto3';
+
+package com.heldertheking.exochat.user.v1alpha1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+import "google/api/field_behavior.proto";
+import "google/api/annotations.proto";
+
+option java_multiple_files = true;
+option java_package = "com.heldertheking.exochat.user.v1alpha1";
+option java_outer_classname = "AccountProto";
+
+service AccountService {
+  rpc CreateAccount(CreateAccountRequest) returns (Account) {
+    option (google.api.http) = {
+      post: '/v1alpha1/{parent=users/*}'
+      body: 'account'
+    };
+  }
+  rpc UpdateAccount(UpdateAccountRequest) returns (Account) {
+    option (google.api.http) = {
+      post: '/v1alpha1/{parent=users/*}'
+      body: 'account'
+    };
+  }
+  rpc DeleteAccount(DeleteAccountRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: '/v1alpha1/{parent=users/*}'
+    };
+  }
+}
+
+message CreateAccountRequest {
+  string parent = 1 [(buf.validate.field).string.pattern = "^users/[0-9]+$"];
+  Account account = 2;
+}
+
+message UpdateAccountRequest {
+  Account account = 1;
+
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message DeleteAccountRequest {
+  string name = 1 [(buf.validate.field).string.pattern = "^users/[0-9]+/accounts/(-|[0-9]+)$"];
+}
+
+message Account {
+  string name = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+  string display_name = 2;
+}

@@ -1,0 +1,42 @@
+# Local development infrastructure for ExoChat
+#
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f
+#   docker compose down        # keeps data
+#   docker compose down -v     # wipes data (init scripts rerun on next start)
+#
+# One MariaDB engine, two databases (same idea as pool3 / pool3_test):
+#   exochat       - local development / bootRun
+#   exochat_test  - ./gradlew test
+#
+# Host port is 3308 so it does not clash with other local MariaDB containers on 3306/3307.
+
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: exochat-mariadb
+    hostname: mariadb
+    ports:
+      - "3308:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - exochat-network
+
+volumes:
+  mariadb-data:
+    name: exochat-mariadb-data
+
+networks:
+  exochat-network:
+    name: exochat-network
+    driver: bridge

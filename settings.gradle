@@ -1,0 +1,8 @@
+rootProject.name = 'exochat'
+
+include 'exochat-bom'
+include 'libs:db'
+include 'libs:proto'
+include 'libs:query-language'
+include 'libs:resource-name-utils'
+include 'app'

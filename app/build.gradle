@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+    alias(libs.plugins.spring.boot)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+    }
+}
+
+dependencies {
+    implementation platform(project(':exochat-bom'))
+    implementation project(':libs:proto')
+    implementation project(':libs:db')
+    implementation project(':libs:query-language')
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
+    implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    implementation libs.spring.grpc.server.starter
+
+    runtimeOnly libs.mariadb.jdbc
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

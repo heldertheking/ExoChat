@@ -1,0 +1,70 @@
+plugins {
+    id 'java-library'
+    id 'antlr'
+    alias(libs.plugins.errorprone)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+    }
+}
+
+// The antlr plugin makes `api` extend the `antlr` configuration, which would leak the full
+// ANTLR tool (org.antlr:antlr4) to consumers. They only need the runtime.
+configurations.api {
+    setExtendsFrom(extendsFrom.findAll { it.name != 'antlr' })
+}
+
+dependencies {
+    antlr libs.antlr.tool
+
+    // jOOQ, Guava and jSpecify types appear in the public API
+    api libs.jooq
+    api libs.guava
+    api libs.jspecify
+
+    implementation libs.slf4j.api
+    implementation libs.antlr.runtime
+
+    testImplementation platform(libs.junit.bom)
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation libs.assertj
+    testImplementation libs.mockito
+    testRuntimeOnly libs.h2
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    errorprone libs.errorprone.core
+    errorprone libs.nullaway
+}
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-visitor", "-long-messages", "-encoding", "UTF-8", "-package", "com.heldertheking.quela"]
+}
+
+// Ship the grammar files in the jar so the language definition is readable without the source.
+processResources {
+    from(sourceSets.main.antlr) {
+        include '**/*.g4'
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['--should-stop=ifError=FLOW', '-XDaddTypeAnnotationsToSymbol=true']
+    options.errorprone {
+        disableWarningsInGeneratedCode = true
+        excludedPaths = '.*/build/generated.*'
+        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        option('NullAway:AnnotatedPackages', 'com.heldertheking')
+        option('NullAway:JSpecifyMode', 'true')
+        option('NullAway:CheckContracts', 'true')
+    }
+    if (name.toLowerCase().contains('test')) {
+        options.errorprone.disable('NullAway')
+    }
+}
