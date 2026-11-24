@@ -80,7 +80,7 @@ Gradle multi-module build (Java 25, Spring Boot 4). Each module has its own READ
 
 ```
 docker compose up -d
-./gradlew build        # app tests need the compose MariaDB
+./gradlew build        # app tests need the compose MariaDB; CI runs the same steps
 ./gradlew :app:bootRun
 ./gradlew coverageReport   # tests + combined JaCoCo report
 ```

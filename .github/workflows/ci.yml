@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Same MariaDB (with the exochat and exochat_test databases) as local development.
+      - name: Start MariaDB
+        run: docker compose up -d --wait mariadb
+
+      - name: Build, test and measure coverage
+        run: ./gradlew build coverageReport --no-daemon --stacktrace
+
+      # Migrations and the committed jOOQ sources must not drift apart.
+      - name: Check generated jOOQ code is up to date
+        run: |
+          ./gradlew :libs:db:jooqCodegen --no-daemon
+          git diff --exit-code -- libs/db/src/main/jooq \
+            || (echo "::error::Generated jOOQ code is stale. Run ./gradlew :libs:db:jooqCodegen and commit the result." && exit 1)
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          report=build/reports/jacoco/aggregate/aggregate.xml
+          [ -f "$report" ] || exit 0
+          python3 - "$report" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse(sys.argv[1]).getroot()
+          print("### Code coverage\n\n| Metric | Covered |\n|---|---|")
+          for c in root.findall("counter"):
+              missed, covered = int(c.get("missed")), int(c.get("covered"))
+              print(f"| {c.get('type').title()} | {covered / max(missed + covered, 1):.1%} ({covered}/{missed + covered}) |")
+          PY
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            build/reports/jacoco/aggregate/
+            **/build/reports/jacoco/test/
+          if-no-files-found: ignore
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/'
+          if-no-files-found: ignore
+
+      - name: Stop MariaDB
+        if: always()
+        run: docker compose down -v
