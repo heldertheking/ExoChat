@@ -58,8 +58,9 @@ ExoChat aims to make communities more than chat rooms: a flexible home for conve
 - `docs/DOMAIN_MODEL.md` — core domain entities and data ownership
 - `docs/API_AND_EVENTS.md` — API, event envelope and delivery guarantees
 - `docs/EXTENSIONS.md` — extension platform and security model
+- `docs/NEW_MODULE.md` — how to add a Gradle module
 - `docs/OPERATIONS_SECURITY.md` — deployment, reliability and security
-- `docs/DECISIONS.md` — initial architecture decision records
+- `docs/adr/` — architecture decision records (one file per ADR)
 - `docs/planning/ROADMAP.md` — phased roadmap and exit criteria
 - `docs/planning/BACKLOG.md` — starter engineering backlog
 - `docs/planning/ROADMAP.ics` — proposed milestone calendar
@@ -69,6 +70,7 @@ ExoChat aims to make communities more than chat rooms: a flexible home for conve
 Gradle multi-module build (Java 25, Spring Boot 4). Each module has its own README.
 
 - [`app/`](app/README.md): Spring Boot application (gRPC server)
+- [`libs/api/`](libs/api/README.md): resource name classes for the API objects
 - [`libs/proto/`](libs/proto/README.md): protobuf contracts and gRPC stubs
 - [`libs/db/`](libs/db/README.md): Liquibase changelogs and generated jOOQ code
 - [`libs/query-language/`](libs/query-language/README.md): filter / order-by / pagination language on top of jOOQ
@@ -96,7 +98,7 @@ Do not start with Kubernetes, a fleet of microservices, voice/video, federation 
 
 - [Product](docs/PRODUCT.md) · [Architecture](docs/ARCHITECTURE.md) · [Domain model](docs/DOMAIN_MODEL.md)
 - [API and events](docs/API_AND_EVENTS.md) · [Extensions](docs/EXTENSIONS.md) · [Operations and security](docs/OPERATIONS_SECURITY.md)
-- [Architecture decision records](docs/DECISIONS.md)
+- [Architecture decision records](docs/adr/README.md) · [Adding a module](docs/NEW_MODULE.md)
 
 ## Roadmap
 

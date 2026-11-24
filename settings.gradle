@@ -1,6 +1,7 @@
 rootProject.name = 'exochat'
 
 include 'exochat-bom'
+include 'libs:api'
 include 'libs:db'
 include 'libs:proto'
 include 'libs:query-language'
