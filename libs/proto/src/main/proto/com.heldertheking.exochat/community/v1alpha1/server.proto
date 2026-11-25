@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.community.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ServerProto";
+option java_package = "com.heldertheking.exochat.community.v1alpha1";
+
+service ServerService {
+  rpc ListServers(ListServersRequest) returns (ListServersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1alpha1/servers"};
+  }
+
+  rpc GetServer(GetServerRequest) returns (Server) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1alpha1/{name=servers/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  rpc CreateServer(CreateServerRequest) returns (Server) {
+    option (google.api.http) = {
+      post: "/v1alpha1/servers"
+      body: "server"
+    };
+    option (google.api.method_signature) = "server";
+  }
+
+  rpc UpdateServer(UpdateServerRequest) returns (Server) {
+    option (google.api.http) = {
+      patch: "/v1alpha1/{server.name=servers/*}"
+      body: "server"
+    };
+    option (google.api.method_signature) = "server,update_mask";
+  }
+
+  rpc DeleteServer(DeleteServerRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha1/{name=servers/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  rpc TransferServer(TransferServerRequest) returns (Server) {
+    option (google.api.http) = {
+      post: "/v1alpha1/{name=servers/*}:transfer"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,new_owner_account";
+  }
+}
+
+message Server {
+  option (google.api.resource) = {
+    type: "exochat.heldertheking.com/Server"
+    pattern: "servers/{server}"
+    singular: "server"
+    plural: "servers"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  string display_name = 2 [(google.api.field_behavior) = REQUIRED];
+
+  string banner_url = 3 [(google.api.field_behavior) = OPTIONAL];
+  string icon_url = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Resource name of the owner's account, derived from the authenticated caller on creation.
+  string owner_account = 5 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+
+  google.protobuf.Timestamp create_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ListServersRequest {
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+  string order_by = 3 [(google.api.field_behavior) = OPTIONAL];
+  string filter = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListServersResponse {
+  repeated Server servers = 1;
+  string next_page_token = 2;
+}
+
+message GetServerRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Server"}
+  ];
+}
+
+message CreateServerRequest {
+  Server server = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // TODO: Think about user-generated IDs (AIP-133)
+  // string server_id = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message UpdateServerRequest {
+  Server server = 1 [(google.api.field_behavior) = REQUIRED];
+
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteServerRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Server"}
+  ];
+}
+
+message TransferServerRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Server"}
+  ];
+
+  string new_owner_account = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+}

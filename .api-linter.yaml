@@ -1,0 +1,5 @@
+- included_paths:
+    - 'libs/proto/src/main/proto/**/*.proto'
+  disabled_rules:
+    # Enable/disable only if you intentionally diverge from strict Google Cloud rules
+    - core::0191::java-package # Only disable if your java_package differs from proto package

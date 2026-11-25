@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.community.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "MemberProto";
+option java_package = "com.heldertheking.exochat.community.v1alpha1";
+
+// Manages the accounts that belong to a server. Members are added by accepting an invite (InviteService.AcceptInvite), never created directly.
+service MemberService {
+  // Lists members.
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse) {
+    option (google.api.http) = {get: "/v1alpha1/{parent=servers/*}/members"};
+    option (google.api.method_signature) = "parent";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Gets a member.
+  rpc GetMember(GetMemberRequest) returns (Member) {
+    option (google.api.http) = {get: "/v1alpha1/{name=servers/*/members/*}"};
+    option (google.api.method_signature) = "name";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Updates a member.
+  rpc UpdateMember(UpdateMemberRequest) returns (Member) {
+    option (google.api.http) = {
+      patch: "/v1alpha1/{member.name=servers/*/members/*}"
+      body: "member"
+    };
+    option (google.api.method_signature) = "member,update_mask";
+  }
+
+  // Deletes a member.
+  rpc DeleteMember(DeleteMemberRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha1/{name=servers/*/members/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// An account's membership of a server.
+message Member {
+  option (google.api.resource) = {
+    type: "exochat.heldertheking.com/Member"
+    pattern: "servers/{server}/members/{member}"
+    singular: "member"
+    plural: "members"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Resource name of the member's account. A reference, not part of the member name.
+  string account = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+
+  // Server-specific display name, overrides the account's display name when set.
+  string nickname = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Resource names of the roles assigned to this member.
+  repeated string roles = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Role"}
+  ];
+
+  // Time the account joined the server.
+  google.protobuf.Timestamp join_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ListMembersRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Member"}
+  ];
+
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+  string order_by = 4 [(google.api.field_behavior) = OPTIONAL];
+  string filter = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListMembersResponse {
+  repeated Member members = 1;
+  string next_page_token = 2;
+}
+
+message GetMemberRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Member"}
+  ];
+}
+
+message UpdateMemberRequest {
+  Member member = 1 [(google.api.field_behavior) = REQUIRED];
+
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteMemberRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Member"}
+  ];
+}

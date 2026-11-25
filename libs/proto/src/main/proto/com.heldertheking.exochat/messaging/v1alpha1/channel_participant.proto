@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.messaging.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ChannelParticipantProto";
+option java_package = "com.heldertheking.exochat.messaging.v1alpha1";
+
+// Manages who takes part in DIRECT and GROUP_DIRECT channels and their read position.
+service ChannelParticipantService {
+  // Lists participants.
+  rpc ListChannelParticipants(ListChannelParticipantsRequest) returns (ListChannelParticipantsResponse) {
+    option (google.api.http) = {get: "/v1alpha1/{parent=channels/*}/participants"};
+    option (google.api.method_signature) = "parent";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Gets a participant.
+  rpc GetChannelParticipant(GetChannelParticipantRequest) returns (ChannelParticipant) {
+    option (google.api.http) = {get: "/v1alpha1/{name=channels/*/participants/*}"};
+    option (google.api.method_signature) = "name";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Creates a participant.
+  rpc CreateChannelParticipant(CreateChannelParticipantRequest) returns (ChannelParticipant) {
+    option (google.api.http) = {
+      post: "/v1alpha1/{parent=channels/*}/participants"
+      body: "participant"
+    };
+    option (google.api.method_signature) = "parent,participant";
+  }
+
+  // Updates a participant.
+  rpc UpdateChannelParticipant(UpdateChannelParticipantRequest) returns (ChannelParticipant) {
+    option (google.api.http) = {
+      patch: "/v1alpha1/{participant.name=channels/*/participants/*}"
+      body: "participant"
+    };
+    option (google.api.method_signature) = "participant,update_mask";
+  }
+
+  // Deletes a participant.
+  rpc DeleteChannelParticipant(DeleteChannelParticipantRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha1/{name=channels/*/participants/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// An account's participation in a direct or group direct channel.
+message ChannelParticipant {
+  option (google.api.resource) = {
+    type: "exochat.heldertheking.com/ChannelParticipant"
+    pattern: "channels/{channel}/participants/{participant}"
+    singular: "participant"
+    plural: "participants"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Resource name of the participant's account. A reference, not part of the participant name.
+  string account = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+
+  // Read cursor: the last message this participant has read.
+  string last_read_message = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Message"}
+  ];
+
+  google.protobuf.Timestamp join_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ListChannelParticipantsRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/ChannelParticipant"}
+  ];
+
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+  string order_by = 4 [(google.api.field_behavior) = OPTIONAL];
+  string filter = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListChannelParticipantsResponse {
+  repeated ChannelParticipant participants = 1;
+  string next_page_token = 2;
+}
+
+message GetChannelParticipantRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/ChannelParticipant"}
+  ];
+}
+
+message CreateChannelParticipantRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/ChannelParticipant"}
+  ];
+
+  ChannelParticipant participant = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // TODO: Think about user-generated IDs (AIP-133)
+  // string participant_id = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message UpdateChannelParticipantRequest {
+  ChannelParticipant participant = 1 [(google.api.field_behavior) = REQUIRED];
+
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteChannelParticipantRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/ChannelParticipant"}
+  ];
+}

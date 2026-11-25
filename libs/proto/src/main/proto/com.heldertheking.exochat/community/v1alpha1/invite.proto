@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.community.v1alpha1;
+
+import "com.heldertheking.exochat/community/v1alpha1/member.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "InviteProto";
+option java_package = "com.heldertheking.exochat.community.v1alpha1";
+
+// Manages shareable join codes for a server.
+service InviteService {
+  // Lists invites.
+  rpc ListInvites(ListInvitesRequest) returns (ListInvitesResponse) {
+    option (google.api.http) = {get: "/v1alpha1/{parent=servers/*}/invites"};
+    option (google.api.method_signature) = "parent";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Gets a invite.
+  rpc GetInvite(GetInviteRequest) returns (Invite) {
+    option (google.api.http) = {get: "/v1alpha1/{name=servers/*/invites/*}"};
+    option (google.api.method_signature) = "name";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Creates a invite.
+  rpc CreateInvite(CreateInviteRequest) returns (Invite) {
+    option (google.api.http) = {
+      post: "/v1alpha1/{parent=servers/*}/invites"
+      body: "invite"
+    };
+    option (google.api.method_signature) = "parent,invite";
+  }
+
+  // Deletes a invite.
+  rpc DeleteInvite(DeleteInviteRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha1/{name=servers/*/invites/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Accepts an invite on behalf of the authenticated account, creating a Member.
+  rpc AcceptInvite(AcceptInviteRequest) returns (Member) {
+    option (google.api.http) = {
+      post: "/v1alpha1/{name=servers/*/invites/*}:accept"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// A shareable join code for a server. {invite} is the short code.
+message Invite {
+  option (google.api.resource) = {
+    type: "exochat.heldertheking.com/Invite"
+    pattern: "servers/{server}/invites/{invite}"
+    singular: "invite"
+    plural: "invites"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Resource name of the account that created the invite.
+  string inviter_account = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+
+  google.protobuf.Timestamp expire_time = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Maximum number of uses, 0 means unlimited.
+  int32 max_uses = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  int32 use_count = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ListInvitesRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Invite"}
+  ];
+
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+  string order_by = 4 [(google.api.field_behavior) = OPTIONAL];
+  string filter = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListInvitesResponse {
+  repeated Invite invites = 1;
+  string next_page_token = 2;
+}
+
+message GetInviteRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Invite"}
+  ];
+}
+
+message CreateInviteRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Invite"}
+  ];
+
+  Invite invite = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // TODO: Think about user-generated IDs (AIP-133)
+  // string invite_id = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteInviteRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Invite"}
+  ];
+}
+
+message AcceptInviteRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Invite"}
+  ];
+}

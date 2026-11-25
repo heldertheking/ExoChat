@@ -31,3 +31,37 @@ protobuf {
         }
     }
 }
+
+tasks.register('bufFormatCheck', Exec) {
+    group = 'verification'
+    description = 'Checks Protobuf formatting with buf format'
+    workingDir = projectDir
+    commandLine 'buf', 'format', '--diff', '--exit-code'
+}
+
+tasks.register('bufLint', Exec) {
+    group = 'verification'
+    description = 'Lints Protobuf files with buf lint'
+    workingDir = projectDir
+    commandLine 'buf', 'lint'
+}
+
+tasks.register('apiLinter', Exec) {
+    group = 'verification'
+    description = 'Validates Google AIP compliance with api-linter'
+    workingDir = rootDir
+    doFirst {
+        def protoRoot = file('src/main/proto')
+        def protos = fileTree(protoRoot) { include '**/*.proto' }.files
+                .collect { protoRoot.toPath().relativize(it.toPath()).toString().replace(File.separator, '/') }
+                .sort()
+        commandLine(['api-linter',
+                     '--config', "${rootDir}/.api-linter.yaml",
+                     '-I', protoRoot.absolutePath,
+                     '-I', "${System.properties['user.home']}/.cache/buf/v3/modules"] + protos)
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'bufFormatCheck', 'bufLint'
+}

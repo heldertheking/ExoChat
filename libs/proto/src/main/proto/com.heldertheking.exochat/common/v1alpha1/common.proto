@@ -3,8 +3,8 @@ syntax = 'proto3';
 package com.heldertheking.exochat.common.v1alpha1;
 
 option java_multiple_files = true;
-option java_package = "com.heldertheking.exochat.common.v1alpha1";
 option java_outer_classname = "CommonProto";
+option java_package = "com.heldertheking.exochat.common.v1alpha1";
 
 // Used to Reference objects by Resource Name.
 message Reference {

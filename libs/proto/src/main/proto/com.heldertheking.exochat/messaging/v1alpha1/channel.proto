@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.messaging.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ChannelProto";
+option java_package = "com.heldertheking.exochat.messaging.v1alpha1";
+
+// Manages channels: the unified conversation container for direct, group direct and server channels.
+//
+// A channel is one entity with two names. The canonical name is `channels/{channel}`. Server
+// channels can also be addressed as `servers/{server}/channels/{channel}`. Both resolve to the same
+// channel, responses always carry the canonical name, and child resources (messages, participants,
+// overwrites) live only under the canonical name.
+service ChannelService {
+  // Lists channels. Without a parent, lists the direct and group direct channels of the caller.
+  // With a server parent, lists that server's channels.
+  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/channels"
+      additional_bindings: {get: "/v1alpha1/{parent=servers/*}/channels"}
+    };
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Gets a channel by either of its names.
+  rpc GetChannel(GetChannelRequest) returns (Channel) {
+    option (google.api.http) = {
+      get: "/v1alpha1/{name=channels/*}"
+      additional_bindings: {get: "/v1alpha1/{name=servers/*/channels/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Creates a channel. Direct channels have no parent, server channels use the server as parent.
+  rpc CreateChannel(CreateChannelRequest) returns (Channel) {
+    option (google.api.http) = {
+      post: "/v1alpha1/channels"
+      body: "channel"
+      additional_bindings: {
+        post: "/v1alpha1/{parent=servers/*}/channels"
+        body: "channel"
+      }
+    };
+    option (google.api.method_signature) = "channel";
+    option (google.api.method_signature) = "parent,channel";
+  }
+
+  // Updates a channel by either of its names.
+  rpc UpdateChannel(UpdateChannelRequest) returns (Channel) {
+    option (google.api.http) = {
+      patch: "/v1alpha1/{channel.name=channels/*}"
+      body: "channel"
+      additional_bindings: {
+        patch: "/v1alpha1/{channel.name=servers/*/channels/*}"
+        body: "channel"
+      }
+    };
+    option (google.api.method_signature) = "channel,update_mask";
+  }
+
+  // Deletes a channel by either of its names.
+  rpc DeleteChannel(DeleteChannelRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1alpha1/{name=channels/*}"
+      additional_bindings: {delete: "/v1alpha1/{name=servers/*/channels/*}"}
+    };
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// A conversation container: a 1:1 direct message, a group direct message or a server channel.
+message Channel {
+  option (google.api.resource) = {
+    type: "exochat.heldertheking.com/Channel"
+    pattern: "channels/{channel}"
+    pattern: "servers/{server}/channels/{channel}"
+    singular: "channel"
+    plural: "channels"
+  };
+
+  enum ChannelType {
+    CHANNEL_TYPE_UNSPECIFIED = 0;
+    CHANNEL_TYPE_DIRECT = 1;
+    CHANNEL_TYPE_GROUP_DIRECT = 2;
+    CHANNEL_TYPE_SERVER_TEXT = 3;
+  }
+
+  // Always the canonical name, `channels/{channel}`.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  ChannelType type = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // Resource name of the owning server. Set for SERVER_TEXT, empty for direct channels.
+  string server = 3 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Server"}
+  ];
+
+  // Required for server channels and optional for group direct channels.
+  string display_name = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Order of a server channel within its server.
+  int32 position = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  google.protobuf.Timestamp last_message_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ListChannelsRequest {
+  // Optional: a server (`servers/{server}`). Empty lists the caller's direct channels.
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Channel"}
+  ];
+
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+  string order_by = 4 [(google.api.field_behavior) = OPTIONAL];
+  string filter = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListChannelsResponse {
+  repeated Channel channels = 1;
+  string next_page_token = 2;
+}
+
+message GetChannelRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Channel"}
+  ];
+}
+
+message CreateChannelRequest {
+  // Optional: a server (`servers/{server}`). Empty for direct and group direct channels.
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Channel"}
+  ];
+
+  Channel channel = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // TODO: Think about user-generated IDs (AIP-133)
+  // string channel_id = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message UpdateChannelRequest {
+  Channel channel = 1 [(google.api.field_behavior) = REQUIRED];
+
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteChannelRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Channel"}
+  ];
+}

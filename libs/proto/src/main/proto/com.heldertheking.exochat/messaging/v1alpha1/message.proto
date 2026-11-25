@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.messaging.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "MessageProto";
+option java_package = "com.heldertheking.exochat.messaging.v1alpha1";
+
+// Manages chat messages. A message is only addressable under its canonical channel (channels/{channel}), never under a server alias.
+service MessageService {
+  // Lists messages.
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
+    option (google.api.http) = {get: "/v1alpha1/{parent=channels/*}/messages"};
+    option (google.api.method_signature) = "parent";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Gets a message.
+  rpc GetMessage(GetMessageRequest) returns (Message) {
+    option (google.api.http) = {get: "/v1alpha1/{name=channels/*/messages/*}"};
+    option (google.api.method_signature) = "name";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Creates a message.
+  rpc CreateMessage(CreateMessageRequest) returns (Message) {
+    option (google.api.http) = {
+      post: "/v1alpha1/{parent=channels/*}/messages"
+      body: "message"
+    };
+    option (google.api.method_signature) = "parent,message";
+  }
+
+  // Updates a message.
+  rpc UpdateMessage(UpdateMessageRequest) returns (Message) {
+    option (google.api.http) = {
+      patch: "/v1alpha1/{message.name=channels/*/messages/*}"
+      body: "message"
+    };
+    option (google.api.method_signature) = "message,update_mask";
+  }
+
+  // Deletes a message.
+  rpc DeleteMessage(DeleteMessageRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha1/{name=channels/*/messages/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// A chat message posted in a channel.
+message Message {
+  option (google.api.resource) = {
+    type: "exochat.heldertheking.com/Message"
+    pattern: "channels/{channel}/messages/{message}"
+    singular: "message"
+    plural: "messages"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Resource name of the author's account, taken from the authenticated caller.
+  string author = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+
+  string content = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // Resource name of the message this one replies to.
+  string reply_to = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Message"}
+  ];
+
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ListMessagesRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Message"}
+  ];
+
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+  string order_by = 4 [(google.api.field_behavior) = OPTIONAL];
+  string filter = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListMessagesResponse {
+  repeated Message messages = 1;
+  string next_page_token = 2;
+}
+
+message GetMessageRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Message"}
+  ];
+}
+
+message CreateMessageRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Message"}
+  ];
+
+  Message message = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // TODO: Think about user-generated IDs (AIP-133)
+  // string message_id = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message UpdateMessageRequest {
+  Message message = 1 [(google.api.field_behavior) = REQUIRED];
+
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteMessageRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Message"}
+  ];
+}

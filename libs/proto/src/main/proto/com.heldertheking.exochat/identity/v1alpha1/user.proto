@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.identity.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "UserProto";
+option java_package = "com.heldertheking.exochat.identity.v1alpha1";
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {get: "/v1alpha1/{name=users/*}"};
+    option (google.api.method_signature) = "name";
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc CreateUser(CreateUserRequest) returns (User) {
+    option (google.api.http) = {
+      post: "/v1alpha1/users"
+      body: "user"
+    };
+    option (google.api.method_signature) = "user";
+  }
+  rpc UpdateUser(UpdateUserRequest) returns (User) {
+    option (google.api.http) = {
+      patch: "/v1alpha1/{user.name=users/*}"
+      body: "user"
+    };
+    option (google.api.method_signature) = "user,update_mask";
+  }
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha1/{name=users/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+message User {
+  option (google.api.resource) = {
+    type: "exochat.heldertheking.com/User"
+    pattern: "users/{user}"
+    singular: "user"
+    plural: "users"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  string email = 2 [(google.api.field_behavior) = OPTIONAL];
+  string phone_number = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message GetUserRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/User"}
+  ];
+}
+
+message CreateUserRequest {
+  User user = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // TODO: Think about user-generated IDs (AIP-133)
+  // string user_id = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message UpdateUserRequest {
+  User user = 1 [(google.api.field_behavior) = REQUIRED];
+
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteUserRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/User"}
+  ];
+}
