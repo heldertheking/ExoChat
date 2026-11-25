@@ -145,6 +145,8 @@ class AuthGrpcServiceTest {
                 .startsWith(response.getUser().getName() + "/accounts/");
         assertThat(response.getAccount().getUsername()).isEqualTo("alice_1");
         assertThat(response.getAccount().getDisplayName()).isEqualTo("alice_1");
+        assertThat(response.getAccount().getStanding())
+                .isEqualTo(com.heldertheking.exochat.identity.v1alpha1.Account.AccountStanding.ACCOUNT_STANDING_MEMBER);
         assertThat(response.getSession().getName())
                 .startsWith(response.getUser().getName() + "/sessions/");
         assertThat(response.getSession().getAccount())

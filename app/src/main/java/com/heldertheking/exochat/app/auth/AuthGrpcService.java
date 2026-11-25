@@ -2,6 +2,8 @@ package com.heldertheking.exochat.app.auth;
 
 import org.springframework.stereotype.Service;
 
+import com.heldertheking.exochat.app.grpc.NameParsing;
+import com.heldertheking.exochat.app.identity.IdentityMapper;
 import com.heldertheking.exochat.app.security.PermissionEvaluator;
 import com.heldertheking.exochat.auth.v1alpha1.AuthServiceGrpc;
 import com.heldertheking.exochat.auth.v1alpha1.AuthenticateUserRequest;
@@ -43,11 +45,11 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
                 request.getDisplayName(),
                 request.getDeviceLabel());
         var response = RegisterUserResponse.newBuilder()
-                .setUser(AuthMapper.user(result.user()))
+                .setUser(IdentityMapper.user(result.user()))
                 .setSession(AuthMapper.session(result.session(), true))
                 .setTokens(AuthMapper.tokens(result));
         if (result.account() != null) {
-            response.setAccount(AuthMapper.account(result.account()));
+            response.setAccount(IdentityMapper.account(result.account(), true));
         }
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
@@ -58,7 +60,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
             AuthenticateUserRequest request, StreamObserver<AuthenticateUserResponse> responseObserver) {
         var result = authentication.authenticate(request.getEmail(), request.getPassword(), request.getDeviceLabel());
         responseObserver.onNext(AuthenticateUserResponse.newBuilder()
-                .setUser(AuthMapper.user(result.user()))
+                .setUser(IdentityMapper.user(result.user()))
                 .setSession(AuthMapper.session(result.session(), true))
                 .setTokens(AuthMapper.tokens(result))
                 .build());

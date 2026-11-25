@@ -3,6 +3,7 @@ package com.heldertheking.exochat.app.auth;
 import org.springframework.stereotype.Service;
 
 import com.google.protobuf.Empty;
+import com.heldertheking.exochat.app.grpc.NameParsing;
 import com.heldertheking.exochat.app.security.PermissionEvaluator;
 import com.heldertheking.exochat.identity.v1alpha1.DeleteSessionRequest;
 import com.heldertheking.exochat.identity.v1alpha1.GetSessionRequest;

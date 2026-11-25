@@ -14,7 +14,8 @@ option java_multiple_files = true;
 option java_outer_classname = "UserProto";
 option java_package = "com.heldertheking.exochat.identity.v1alpha1";
 
-// Manages users: the root login identity that owns accounts.
+// Manages users: the root login identity that owns accounts. Users are created by AuthService.RegisterUser, which also
+// sets the password.
 // (-- api-linter: core::0121::resource-must-support-list=disabled
 //     aip.dev/not-precedent: users are never listed, other users only see accounts. --)
 service UserService {
@@ -23,14 +24,6 @@ service UserService {
     option (google.api.http) = {get: "/v1alpha1/{name=users/*}"};
     option (google.api.method_signature) = "name";
     option idempotency_level = NO_SIDE_EFFECTS;
-  }
-  // Creates a user (sign-up).
-  rpc CreateUser(CreateUserRequest) returns (User) {
-    option (google.api.http) = {
-      post: "/v1alpha1/users"
-      body: "user"
-    };
-    option (google.api.method_signature) = "user";
   }
   // Updates a user.
   rpc UpdateUser(UpdateUserRequest) returns (User) {
@@ -71,13 +64,6 @@ message GetUserRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "exochat.heldertheking.com/User"}
   ];
-}
-
-message CreateUserRequest {
-  User user = 1 [(google.api.field_behavior) = REQUIRED];
-
-  // TODO: Think about user-generated IDs (AIP-133)
-  // string user_id = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message UpdateUserRequest {

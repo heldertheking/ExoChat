@@ -16,6 +16,7 @@ What an account may do is decided by named **rules** (`CREATE_SERVER`, `SEND_MES
   5. *Default of the rule.*
 - **Where it lives.** `app/permission` is a pure package (`Rule`, `RuleState`, `RuleSet`, `Standing`, `PermissionInput`, `PermissionResolver`, the `PermissionRepository` interface) with no Spring, jOOQ or gRPC types; the jOOQ repository is in `permission.persistence`. `PermissionEvaluator` (in `security`) bridges the authenticated caller and the repository and takes an explicit subject (`can(accountName, rule)`) so that code without a security context, for example an event consumer, can ask as well. When a second module needs the package it moves to a library unchanged.
 - **Protos.** `Account.standing` (output only), `Role.rules` and `ChannelOverwrite.rules` are `repeated RuleSetting {rule, state}`. The earlier `int64` bitmasks are gone.
+- **First use.** `CREATE_ACCOUNT` guards `AccountService.CreateAccount` (a `RESTRICTED` account may not create accounts); the other rules wait for the services that use them.
 - **Scope.** Rules are scope-free actions; the channel scope (direct, group, server) is context. A rule that only makes sense in some channels (such as `SPEAK`) is simply not used elsewhere.
 
 ## Consequences

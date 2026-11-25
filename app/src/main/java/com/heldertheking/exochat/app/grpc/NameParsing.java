@@ -1,4 +1,4 @@
-package com.heldertheking.exochat.app.auth;
+package com.heldertheking.exochat.app.grpc;
 
 import com.heldertheking.exochat.api.identity.AccountName;
 import com.heldertheking.exochat.api.identity.SessionName;
@@ -9,10 +9,10 @@ import io.grpc.StatusRuntimeException;
 
 /// Parses the resource names of a request. A name that is malformed or a wildcard is an INVALID_ARGUMENT, requests
 /// address exactly one resource.
-final class NameParsing {
+public final class NameParsing {
     private NameParsing() {}
 
-    static UserName user(String field, String name) {
+    public static UserName user(String field, String name) {
         try {
             var parsed = UserName.fromName(name);
             return notWildcard(field, name, parsed.isWildcard(), parsed);
@@ -21,7 +21,7 @@ final class NameParsing {
         }
     }
 
-    static SessionName session(String field, String name) {
+    public static SessionName session(String field, String name) {
         try {
             var parsed = SessionName.fromName(name);
             return notWildcard(field, name, parsed.isWildcard(), parsed);
@@ -30,7 +30,7 @@ final class NameParsing {
         }
     }
 
-    static AccountName account(String field, String name) {
+    public static AccountName account(String field, String name) {
         try {
             var parsed = AccountName.fromName(name);
             return notWildcard(field, name, parsed.isWildcard(), parsed);

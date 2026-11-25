@@ -5,8 +5,8 @@ package com.heldertheking.exochat.app.permission;
 public enum Standing {
     /// Uses the application normally.
     MEMBER(RuleSet.empty()),
-    /// Limited by a general rule set: no new servers, invites or friend requests.
-    RESTRICTED(RuleSet.denying(Rule.CREATE_SERVER, Rule.CREATE_INVITE, Rule.SEND_FRIEND_REQUESTS)),
+    /// Limited by a general rule set: no new servers, accounts, invites or friend requests.
+    RESTRICTED(RuleSet.denying(Rule.CREATE_SERVER, Rule.CREATE_INVITE, Rule.SEND_FRIEND_REQUESTS, Rule.CREATE_ACCOUNT)),
     /// Can do nothing.
     SUSPENDED(RuleSet.denyingAll());
 

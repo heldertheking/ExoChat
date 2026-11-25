@@ -17,7 +17,8 @@ public enum Rule {
     SEND_MESSAGES(true),
     MANAGE_MESSAGES(false),
     CONNECT(true),
-    SPEAK(true);
+    SPEAK(true),
+    CREATE_ACCOUNT(true);
 
     private final boolean allowedByDefault;
 

@@ -9,7 +9,7 @@ Protocol Buffers contracts and generated gRPC/Java stubs. Protobuf is the canoni
 | Domain | Status |
 |---|---|
 | `health/v1alpha1` | `HealthService.Check` (implemented in `app`) |
-| `identity/v1alpha1` | `User`, `Account`, `Relationship`, `Session` (contract only) |
+| `identity/v1alpha1` | `User`, `Account`, `Relationship`, `Session`. `UserService` (get, update, delete; users are created by `AuthService.RegisterUser`), `AccountService` and `SessionService` are implemented, `Relationship` is contract only |
 | `community/v1alpha1` | `Server`, `Member`, `Role`, `Invite` (contract only) |
 | `messaging/v1alpha1` | `Channel` (two names), `ChannelParticipant`, `ChannelOverwrite`, `Message` (contract only) |
 | `common/v1alpha1` | `Reference`, `Rule`, `RuleState`, `RuleSetting` (ADR-013) |

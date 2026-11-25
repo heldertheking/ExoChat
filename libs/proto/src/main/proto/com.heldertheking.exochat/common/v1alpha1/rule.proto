@@ -44,6 +44,8 @@ enum Rule {
   RULE_CONNECT = 11;
   // Speak in a voice channel. Default: allowed.
   RULE_SPEAK = 12;
+  // Create another account for the user. Default: allowed.
+  RULE_CREATE_ACCOUNT = 13;
 }
 
 // The state a layer gives to a rule. A layer that says nothing about a rule has no RuleSetting for it, the rule is

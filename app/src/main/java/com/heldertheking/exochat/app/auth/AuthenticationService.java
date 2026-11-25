@@ -8,9 +8,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Locale;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import org.jooq.DSLContext;
 import org.jspecify.annotations.Nullable;
@@ -20,6 +18,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.heldertheking.exochat.api.id.UuidV7;
+import com.heldertheking.exochat.app.identity.IdentityInput;
+import com.heldertheking.exochat.app.permission.Standing;
 import com.heldertheking.exochat.db.schema.tables.records.AccountRecord;
 import com.heldertheking.exochat.db.schema.tables.records.SessionRecord;
 import com.heldertheking.exochat.db.schema.tables.records.UserRecord;
@@ -31,11 +31,6 @@ import io.grpc.Status;
 @Service
 public class AuthenticationService {
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticationService.class);
-    private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+$");
-    private static final Pattern USERNAME = Pattern.compile("^[a-z0-9_.]{3,32}$");
-    private static final int MAX_EMAIL_LENGTH = 320;
-    private static final int MAX_PHONE_LENGTH = 32;
-    private static final int MAX_DISPLAY_NAME_LENGTH = 64;
     private static final int MAX_DEVICE_LABEL_LENGTH = 100;
 
     private final DSLContext dsl;
@@ -68,22 +63,10 @@ public class AuthenticationService {
             String username,
             @Nullable String displayName,
             @Nullable String deviceLabel) {
-        var normalizedEmail = normalizeEmail(email);
-        if (normalizedEmail == null) {
-            throw invalid("email is not valid");
-        }
-        var normalizedUsername = username.trim().toLowerCase(Locale.ROOT);
-        if (!USERNAME.matcher(normalizedUsername).matches()) {
-            throw invalid("username must be 3 to 32 characters of a-z, 0-9, _ and .");
-        }
-        var phone = blankToNull(phoneNumber);
-        if (phone != null && phone.length() > MAX_PHONE_LENGTH) {
-            throw invalid("phone_number is too long");
-        }
-        var display = blankToNull(displayName);
-        if (display != null && display.length() > MAX_DISPLAY_NAME_LENGTH) {
-            throw invalid("display_name is too long");
-        }
+        var normalizedEmail = IdentityInput.requireEmail(email);
+        var normalizedUsername = IdentityInput.requireUsername(username);
+        var phone = IdentityInput.optionalPhoneNumber(phoneNumber);
+        var display = IdentityInput.optionalDisplayName(displayName);
         if (!PasswordHasher.isAcceptable(password)) {
             throw invalid("password must have between %d and %d characters"
                     .formatted(PasswordHasher.MIN_LENGTH, PasswordHasher.MAX_LENGTH));
@@ -105,24 +88,13 @@ public class AuthenticationService {
                 account.setUserId(user.getId());
                 account.setUsername(normalizedUsername);
                 account.setDisplayName(display == null ? normalizedUsername : display);
+                account.setStanding(Standing.MEMBER.name());
                 account.setCreateTime(now);
                 account.insert();
                 return createSession(tx, user, account, deviceLabel, now);
             });
         } catch (DataIntegrityViolationException e) {
-            var cause = String.valueOf(e.getMostSpecificCause().getMessage());
-            if (cause.contains("uq_user_email")) {
-                throw Status.ALREADY_EXISTS
-                        .withDescription("email is already registered")
-                        .asRuntimeException();
-            } else if (cause.contains("uq_user_phone_number")) {
-                throw Status.ALREADY_EXISTS
-                        .withDescription("phone_number is already registered")
-                        .asRuntimeException();
-            } else if (cause.contains("uq_account_username")) {
-                throw Status.ALREADY_EXISTS.withDescription("username is taken").asRuntimeException();
-            }
-            throw e;
+            throw IdentityInput.duplicate(e);
         }
     }
 
@@ -130,7 +102,7 @@ public class AuthenticationService {
     ///
     /// @throws io.grpc.StatusRuntimeException UNAUTHENTICATED for an unknown email or a wrong password alike
     public Authenticated authenticate(String email, String password, @Nullable String deviceLabel) {
-        var normalizedEmail = normalizeEmail(email);
+        var normalizedEmail = IdentityInput.normalizeEmail(email);
         var user = normalizedEmail == null
                 ? null
                 : dsl.selectFrom(USER).where(USER.EMAIL.eq(normalizedEmail)).fetchOne();
@@ -324,14 +296,6 @@ public class AuthenticationService {
         return a.isBefore(b) ? a : b;
     }
 
-    private static @Nullable String normalizeEmail(String email) {
-        var normalized = email.trim().toLowerCase(Locale.ROOT);
-        return normalized.length() <= MAX_EMAIL_LENGTH
-                        && EMAIL.matcher(normalized).matches()
-                ? normalized
-                : null;
-    }
-
     private static @Nullable String blankToNull(@Nullable String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
@@ -341,7 +305,7 @@ public class AuthenticationService {
     }
 
     private static io.grpc.StatusRuntimeException invalid(String description) {
-        return Status.INVALID_ARGUMENT.withDescription(description).asRuntimeException();
+        return IdentityInput.invalid(description);
     }
 
     private static io.grpc.StatusRuntimeException badCredentials() {
