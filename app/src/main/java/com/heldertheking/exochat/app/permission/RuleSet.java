@@ -1,13 +1,13 @@
 package com.heldertheking.exochat.app.permission;
 
-import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
 /// The explicit decisions of one layer: a rule is allowed, denied or not listed (inherited). Immutable.
 public final class RuleSet {
-    private static final RuleSet EMPTY = new RuleSet(new EnumMap<>(Rule.class));
+    private static final RuleSet EMPTY = new RuleSet(new LinkedHashMap<>());
 
     private final Map<Rule, RuleState> states;
 
@@ -25,13 +25,13 @@ public final class RuleSet {
         if (states.isEmpty()) {
             return EMPTY;
         }
-        return new RuleSet(new EnumMap<>(states));
+        return new RuleSet(new LinkedHashMap<>(states));
     }
 
     /// A set that denies every rule.
     public static RuleSet denyingAll() {
-        var states = new EnumMap<Rule, RuleState>(Rule.class);
-        for (var rule : Rule.values()) {
+        var states = new LinkedHashMap<Rule, RuleState>();
+        for (var rule : Rule.all()) {
             states.put(rule, RuleState.DENY);
         }
         return new RuleSet(states);
@@ -39,7 +39,7 @@ public final class RuleSet {
 
     /// A set that denies the given rules.
     public static RuleSet denying(Rule... rules) {
-        var states = new EnumMap<Rule, RuleState>(Rule.class);
+        var states = new LinkedHashMap<Rule, RuleState>();
         for (var rule : rules) {
             states.put(rule, RuleState.DENY);
         }
@@ -48,7 +48,7 @@ public final class RuleSet {
 
     /// A set that allows the given rules.
     public static RuleSet allowing(Rule... rules) {
-        var states = new EnumMap<Rule, RuleState>(Rule.class);
+        var states = new LinkedHashMap<Rule, RuleState>();
         for (var rule : rules) {
             states.put(rule, RuleState.ALLOW);
         }

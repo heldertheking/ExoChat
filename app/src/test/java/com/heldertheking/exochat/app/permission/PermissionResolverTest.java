@@ -56,7 +56,7 @@ class PermissionResolverTest {
         void suspended_should_denyEverythingEvenWhatIsAllowedByDefault() {
             var input = platform(Standing.SUSPENDED, RuleSet.empty());
 
-            for (var rule : Rule.values()) {
+            for (var rule : Rule.all()) {
                 assertThat(allowed(rule, input)).as(rule.name()).isFalse();
             }
         }
@@ -106,7 +106,7 @@ class PermissionResolverTest {
     class ServerLayer {
         @Test
         void theOwnerShouldBeAllowedEverythingInTheOwnServer() {
-            for (var rule : Rule.values()) {
+            for (var rule : Rule.all()) {
                 assertThat(allowed(rule, server(true))).as(rule.name()).isTrue();
             }
         }

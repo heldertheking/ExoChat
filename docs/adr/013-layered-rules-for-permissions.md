@@ -6,7 +6,7 @@ What an account may do is decided by named **rules** (`CREATE_SERVER`, `SEND_MES
 
 ## Decision
 
-- **Rule.** An action with a default: most rules are allowed by default, management rules are denied. The same names exist as the `Rule` enum of `common/v1alpha1/rule.proto`, as the Java `Rule` enum and as strings in the database; `ProtoEnumSyncTest` keeps the first two in sync, unknown strings from the database are ignored.
+- **Rule.** An action with a default: most rules are allowed by default, management rules are denied. In Java a rule is a `record Rule(String name, boolean allowedByDefault)` with the known rules as constants (`Rule.SEND_MESSAGES`, like the `Permission` record of app-gateway); `Rule.all()` lists them and `Rule.find(name)` looks one up. The same names exist as the `Rule` enum of `common/v1alpha1/rule.proto` and as strings in the database; `ProtoEnumSyncTest` keeps the proto and the constants in sync, unknown strings from the database are ignored. Being a value rather than an enum, a rule can later be defined by an extension (ADR-008) with a namespaced name.
 - **State.** `ALLOW` or `DENY`. A layer that has no opinion has no row: the rule is inherited. There is no stored `INHERIT`.
 - **Layers, general to specific.**
   1. *Platform:* the `standing` of the account (`MEMBER`, `RESTRICTED`, `SUSPENDED`) gives a base rule set (`MEMBER` none, `RESTRICTED` a general limited set, `SUSPENDED` everything denied), refined by rules the platform set on the account (`account_rule`). A `DENY` here is a **ceiling**: no server, role or channel can lift it. An `ALLOW` here only lifts a denial of the standing.

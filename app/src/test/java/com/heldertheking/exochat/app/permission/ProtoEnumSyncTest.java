@@ -27,7 +27,7 @@ class ProtoEnumSyncTest {
     void rule_should_matchTheProtoEnum() {
         var proto = protoNames(com.heldertheking.exochat.common.v1alpha1.Rule.getDescriptor(), "RULE_");
 
-        assertThat(Arrays.stream(Rule.values()).map(Enum::name)).containsExactlyInAnyOrderElementsOf(proto);
+        assertThat(Rule.all().stream().map(Rule::name)).containsExactlyInAnyOrderElementsOf(proto);
     }
 
     @Test

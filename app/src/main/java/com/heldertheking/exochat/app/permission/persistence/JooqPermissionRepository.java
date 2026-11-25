@@ -3,11 +3,12 @@ package com.heldertheking.exochat.app.permission.persistence;
 import static com.heldertheking.exochat.db.schema.Tables.ACCOUNT;
 import static com.heldertheking.exochat.db.schema.Tables.ACCOUNT_RULE;
 
-import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.jooq.DSLContext;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -50,19 +51,29 @@ class JooqPermissionRepository implements PermissionRepository {
 
     @Override
     public RuleSet accountOverrides(UUID accountId) {
-        var states = new EnumMap<Rule, RuleState>(Rule.class);
+        var states = new LinkedHashMap<Rule, RuleState>();
         dsl.select(ACCOUNT_RULE.RULE, ACCOUNT_RULE.STATE)
                 .from(ACCOUNT_RULE)
                 .where(ACCOUNT_RULE.ACCOUNT_ID.eq(accountId))
                 .fetch()
                 .forEach(row -> {
-                    try {
-                        states.put(Rule.valueOf(row.value1()), RuleState.valueOf(row.value2()));
-                    } catch (IllegalArgumentException e) {
+                    var rule = Rule.find(row.value1());
+                    var state = parseState(row.value2());
+                    if (rule.isPresent() && state != null) {
+                        states.put(rule.get(), state);
+                    } else {
                         LOG.warn(
                                 "ignoring account rule '{}'='{}' of account {}", row.value1(), row.value2(), accountId);
                     }
                 });
         return RuleSet.of(states);
+    }
+
+    private static @Nullable RuleState parseState(String state) {
+        try {
+            return RuleState.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }
