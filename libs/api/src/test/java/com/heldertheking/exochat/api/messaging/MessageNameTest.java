@@ -1,4 +1,4 @@
-package com.heldertheking.exochat.api.channel;
+package com.heldertheking.exochat.api.messaging;
 
 import com.heldertheking.exochat.api.id.UuidV7;
 import org.junit.jupiter.api.Test;

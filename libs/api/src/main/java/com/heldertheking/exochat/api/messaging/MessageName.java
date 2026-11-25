@@ -1,4 +1,4 @@
-package com.heldertheking.exochat.api.channel;
+package com.heldertheking.exochat.api.messaging;
 
 import com.google.api.pathtemplate.PathTemplate;
 import com.heldertheking.exochat.api.id.AbstractUuidSubResourceName;

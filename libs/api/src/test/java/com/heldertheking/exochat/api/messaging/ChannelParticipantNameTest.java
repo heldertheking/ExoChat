@@ -1,4 +1,4 @@
-package com.heldertheking.exochat.api.channel;
+package com.heldertheking.exochat.api.messaging;
 
 import com.heldertheking.exochat.api.id.UuidV7;
 import org.junit.jupiter.api.Test;
@@ -10,13 +10,13 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class ParticipantNameTest {
+class ChannelParticipantNameTest {
     private static final UUID U0 = UUID.fromString("0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01");
     private static final UUID U1 = UUID.fromString("0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a02");
 
     @Test
     void of_should_formatAndExposePersistenceId() {
-        var name = ParticipantName.of(ChannelName.of(U0), U1);
+        var name = ChannelParticipantName.of(ChannelName.of(U0), U1);
 
         assertThat(name).hasToString("channels/" + U0 + "/participants/" + U1);
         assertThat(name.getPersistenceId()).isEqualTo(U1);
@@ -26,7 +26,7 @@ class ParticipantNameTest {
 
     @Test
     void wildcard_should_formatAsDashAndRejectPersistenceId() {
-        var name = ParticipantName.wildcard(ChannelName.of(U0));
+        var name = ChannelParticipantName.wildcard(ChannelName.of(U0));
 
         assertThat(name).hasToString("channels/" + U0 + "/participants/-");
         assertThat(name.isWildcard()).isTrue();
@@ -35,17 +35,17 @@ class ParticipantNameTest {
 
     @Test
     void fromName_should_roundTrip() {
-        assertThat(ParticipantName.fromName("channels/" + U0 + "/participants/" + U1)).isEqualTo(ParticipantName.of(ChannelName.of(U0), U1));
-        assertThat(ParticipantName.fromName("channels/" + U0 + "/participants/-")).isEqualTo(ParticipantName.wildcard(ChannelName.of(U0)));
+        assertThat(ChannelParticipantName.fromName("channels/" + U0 + "/participants/" + U1)).isEqualTo(ChannelParticipantName.of(ChannelName.of(U0), U1));
+        assertThat(ChannelParticipantName.fromName("channels/" + U0 + "/participants/-")).isEqualTo(ChannelParticipantName.wildcard(ChannelName.of(U0)));
     }
 
     @Test
     void equals_and_hashCode_should_dependOnIdAndParent() {
-        assertThat(ParticipantName.of(ChannelName.of(U0), U1))
-                .isEqualTo(ParticipantName.of(ChannelName.of(U0), U1))
-                .hasSameHashCodeAs(ParticipantName.of(ChannelName.of(U0), U1))
-                .isNotEqualTo(ParticipantName.of(ChannelName.of(U0), UuidV7.next()))
-                .isNotEqualTo(ParticipantName.wildcard(ChannelName.of(U0)));
+        assertThat(ChannelParticipantName.of(ChannelName.of(U0), U1))
+                .isEqualTo(ChannelParticipantName.of(ChannelName.of(U0), U1))
+                .hasSameHashCodeAs(ChannelParticipantName.of(ChannelName.of(U0), U1))
+                .isNotEqualTo(ChannelParticipantName.of(ChannelName.of(U0), UuidV7.next()))
+                .isNotEqualTo(ChannelParticipantName.wildcard(ChannelName.of(U0)));
     }
 
     @ParameterizedTest
@@ -56,18 +56,18 @@ class ParticipantNameTest {
             "/participants/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01"
     })
     void fromName_should_rejectOtherStrings(String name) {
-        assertThatThrownBy(() -> ParticipantName.fromName(name)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ChannelParticipantName.fromName(name)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void of_should_rejectNonV7Uuids() {
-        assertThatThrownBy(() -> ParticipantName.of(ChannelName.of(U0), UUID.randomUUID()))
+        assertThatThrownBy(() -> ChannelParticipantName.of(ChannelName.of(U0), UUID.randomUUID()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void of_should_rejectNonWildcardChild_when_parentIsWildcard() {
-        assertThatThrownBy(() -> ParticipantName.of(ChannelName.wildcard(), UuidV7.next()))
+        assertThatThrownBy(() -> ChannelParticipantName.of(ChannelName.wildcard(), UuidV7.next()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

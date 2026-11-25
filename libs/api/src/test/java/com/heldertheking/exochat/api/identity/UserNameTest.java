@@ -1,4 +1,4 @@
-package com.heldertheking.exochat.api.user;
+package com.heldertheking.exochat.api.identity;
 
 import com.google.api.pathtemplate.ValidationException;
 import com.heldertheking.exochat.api.id.UuidV7;
