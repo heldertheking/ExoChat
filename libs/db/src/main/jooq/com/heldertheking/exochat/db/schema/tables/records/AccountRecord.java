@@ -104,10 +104,25 @@ public class AccountRecord extends UpdatableRecordImpl<AccountRecord> {
     }
 
     /**
+     * Setter for <code>account.standing</code>.
+     */
+    public AccountRecord setStanding(String value) {
+        set(5, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>account.standing</code>.
+     */
+    public String getStanding() {
+        return (String) get(5);
+    }
+
+    /**
      * Setter for <code>account.create_time</code>.
      */
     public AccountRecord setCreateTime(LocalDateTime value) {
-        set(5, value);
+        set(6, value);
         return this;
     }
 
@@ -115,14 +130,14 @@ public class AccountRecord extends UpdatableRecordImpl<AccountRecord> {
      * Getter for <code>account.create_time</code>.
      */
     public LocalDateTime getCreateTime() {
-        return (LocalDateTime) get(5);
+        return (LocalDateTime) get(6);
     }
 
     /**
      * Setter for <code>account.update_time</code>.
      */
     public AccountRecord setUpdateTime(LocalDateTime value) {
-        set(6, value);
+        set(7, value);
         return this;
     }
 
@@ -130,7 +145,7 @@ public class AccountRecord extends UpdatableRecordImpl<AccountRecord> {
      * Getter for <code>account.update_time</code>.
      */
     public LocalDateTime getUpdateTime() {
-        return (LocalDateTime) get(6);
+        return (LocalDateTime) get(7);
     }
 
     // -------------------------------------------------------------------------
@@ -157,7 +172,7 @@ public class AccountRecord extends UpdatableRecordImpl<AccountRecord> {
     /**
      * Create a detached, initialised AccountRecord
      */
-    public AccountRecord(@NonNull UUID id, @NonNull UUID userId, @NonNull String username, @NonNull String displayName, @Nullable String avatarUrl, LocalDateTime createTime, LocalDateTime updateTime) {
+    public AccountRecord(@NonNull UUID id, @NonNull UUID userId, @NonNull String username, @NonNull String displayName, @Nullable String avatarUrl, String standing, LocalDateTime createTime, LocalDateTime updateTime) {
         super(Account.ACCOUNT);
 
         setId(id);
@@ -165,6 +180,7 @@ public class AccountRecord extends UpdatableRecordImpl<AccountRecord> {
         setUsername(username);
         setDisplayName(displayName);
         setAvatarUrl(avatarUrl);
+        setStanding(standing);
         setCreateTime(createTime);
         setUpdateTime(updateTime);
         resetTouchedOnNotNull();

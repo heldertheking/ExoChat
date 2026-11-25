@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package com.heldertheking.exochat.messaging.v1alpha1;
 
+import "com.heldertheking.exochat/common/v1alpha1/rule.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -13,7 +14,7 @@ option java_multiple_files = true;
 option java_outer_classname = "ChannelOverwriteProto";
 option java_package = "com.heldertheking.exochat.messaging.v1alpha1";
 
-// Manages per-channel permission allow/deny overwrites for server channels.
+// Manages per-channel rule overwrites for a role or an account in server channels.
 service ChannelOverwriteService {
   // Lists channel_overwrites.
   rpc ListChannelOverwrites(ListChannelOverwritesRequest) returns (ListChannelOverwritesResponse) {
@@ -83,11 +84,8 @@ message ChannelOverwrite {
     (google.api.resource_reference) = {type: "*"}
   ];
 
-  // Permission bitmask explicitly allowed in this channel.
-  int64 allow = 4 [(google.api.field_behavior) = OPTIONAL];
-
-  // Permission bitmask explicitly denied in this channel.
-  int64 deny = 5 [(google.api.field_behavior) = OPTIONAL];
+  // The rules the target is explicitly allowed or denied in this channel. A rule that is not listed is inherited.
+  repeated com.heldertheking.exochat.common.v1alpha1.RuleSetting rules = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListChannelOverwritesRequest {

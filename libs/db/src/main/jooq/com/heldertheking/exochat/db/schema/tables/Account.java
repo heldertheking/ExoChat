@@ -6,6 +6,7 @@ package com.heldertheking.exochat.db.schema.tables;
 
 import com.heldertheking.exochat.db.schema.Indexes;
 import com.heldertheking.exochat.db.schema.Keys;
+import com.heldertheking.exochat.db.schema.tables.AccountRule.AccountRulePath;
 import com.heldertheking.exochat.db.schema.tables.Relationship.RelationshipPath;
 import com.heldertheking.exochat.db.schema.tables.Session.SessionPath;
 import com.heldertheking.exochat.db.schema.tables.User.UserPath;
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -87,6 +89,11 @@ public class Account extends TableImpl<AccountRecord> {
      * The column <code>account.avatar_url</code>.
      */
     public final TableField<AccountRecord, String> AVATAR_URL = createField(DSL.name("avatar_url"), SQLDataType.VARCHAR(2048).defaultValue(DSL.field(DSL.raw("NULL"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>account.standing</code>.
+     */
+    public final TableField<AccountRecord, String> STANDING = createField(DSL.name("standing"), SQLDataType.VARCHAR(16).nullable(false).defaultValue(DSL.field(DSL.raw("'MEMBER'"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>account.create_time</code>.
@@ -196,6 +203,18 @@ public class Account extends TableImpl<AccountRecord> {
         return _user;
     }
 
+    private transient AccountRulePath _accountRule;
+
+    /**
+     * Get the implicit to-many join path to the <code>account_rule</code> table
+     */
+    public AccountRulePath accountRule() {
+        if (_accountRule == null)
+            _accountRule = new AccountRulePath(this, null, Keys.FK_ACCOUNT_RULE_ACCOUNT.getInverseKey());
+
+        return _accountRule;
+    }
+
     private transient RelationshipPath _fkRelationshipOwner;
 
     /**
@@ -232,6 +251,14 @@ public class Account extends TableImpl<AccountRecord> {
             _session = new SessionPath(this, null, Keys.FK_SESSION_ACCOUNT.getInverseKey());
 
         return _session;
+    }
+
+    @Override
+    @NonNull
+    public List<Check<AccountRecord>> getChecks() {
+        return Arrays.asList(
+            Internal.createCheck(this, DSL.name("ck_account_standing"), "`standing` in ('MEMBER','RESTRICTED','SUSPENDED')", true)
+        );
     }
 
     @Override

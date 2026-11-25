@@ -7,14 +7,15 @@
 | User | Root login identity (`users/{user}`); owns several Accounts |
 | Account | Public persona (`users/{user}/accounts/{account}`): username, display name, avatar, status |
 | Relationship | Friend/pending/blocked link between two Accounts |
+| Rule | Named action (`SEND_MESSAGES`, ...) that platform, server roles and channel overwrites allow or deny in layers (ADR-013) |
 | Session | One per logged in device (`users/{user}/sessions/{session}`): refresh token family, active account, device label (ADR-012) |
 | Server | Community (`servers/{server}`): name, icon, owner account |
 | Member | Account-server relationship (`servers/{server}/members/{member}`), nickname, role assignments |
-| Role | Server-defined permission bundle (bitmask) |
+| Role | Server-defined set of rule decisions, ranked by position |
 | Invite | Shareable join code for a server |
 | Channel | Unified conversation container, with a scope (DIRECT, GROUP, SERVER) and a type (TEXT, VOICE, FORUM, STAGE, ANNOUNCEMENT). Canonical name `channels/{channel}`, server channels also addressable as `servers/{server}/channels/{channel}` |
 | ChannelParticipant | Participant and read cursor of a direct or group channel |
-| ChannelOverwrite | Per-channel allow/deny permission bitmasks for a Role or Account |
+| ChannelOverwrite | Per-channel rule decisions for a Role or an Account |
 | Message | Author, content, optional reply, timestamps (`channels/{channel}/messages/{message}`) |
 | Reaction | User reaction to a message |
 | Attachment | Object-storage key, metadata, ownership |

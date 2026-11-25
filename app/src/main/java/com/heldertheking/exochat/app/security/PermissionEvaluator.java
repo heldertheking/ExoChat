@@ -12,11 +12,20 @@ import org.springframework.stereotype.Service;
 import com.heldertheking.exochat.api.identity.AccountName;
 import com.heldertheking.exochat.api.identity.SessionName;
 import com.heldertheking.exochat.api.identity.UserName;
+import com.heldertheking.exochat.app.permission.PermissionInput;
+import com.heldertheking.exochat.app.permission.PermissionRepository;
+import com.heldertheking.exochat.app.permission.PermissionResolver;
+import com.heldertheking.exochat.app.permission.Rule;
 
 /// Answers who is calling and what that caller may do. The `*PermissionChecker` of each domain asks it, handlers
 /// never look at the security context themselves.
 @Service
 public class PermissionEvaluator {
+    private final PermissionRepository permissionRepository;
+
+    public PermissionEvaluator(PermissionRepository permissionRepository) {
+        this.permissionRepository = permissionRepository;
+    }
 
     /// The authenticated caller.
     ///
@@ -61,5 +70,26 @@ public class PermissionEvaluator {
         return !session.isWildcard()
                 && isUser(session.getParent())
                 && session.getPersistenceId().equals(currentSessionId());
+    }
+
+    /// Whether the active account of the caller may do the rule outside any server (platform layer only). False if
+    /// the session has no active account.
+    public boolean can(Rule rule) {
+        var account = currentAccountName();
+        return account != null && can(account, rule);
+    }
+
+    /// Whether the account may do the rule outside any server. Takes the subject explicitly so that code without a
+    /// security context, such as an event consumer, can ask too. An account that does not exist may do nothing.
+    public boolean can(AccountName account, Rule rule) {
+        if (account.isWildcard()) {
+            return false;
+        }
+        var accountId = account.getPersistenceId();
+        return permissionRepository
+                .standing(accountId)
+                .map(standing -> PermissionResolver.isAllowed(
+                        rule, PermissionInput.platform(standing, permissionRepository.accountOverrides(accountId))))
+                .orElse(false);
     }
 }

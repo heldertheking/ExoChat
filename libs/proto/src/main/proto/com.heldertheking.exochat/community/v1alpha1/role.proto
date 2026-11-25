@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package com.heldertheking.exochat.community.v1alpha1;
 
+import "com.heldertheking.exochat/common/v1alpha1/rule.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -73,8 +74,8 @@ message Role {
   // Higher positions outrank lower ones.
   int32 position = 4 [(google.api.field_behavior) = OPTIONAL];
 
-  // Permission bitmask.
-  int64 permissions = 5 [(google.api.field_behavior) = OPTIONAL];
+  // The rules this role allows or denies in the server. A rule that is not listed is inherited.
+  repeated com.heldertheking.exochat.common.v1alpha1.RuleSetting rules = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListRolesRequest {

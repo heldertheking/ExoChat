@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.common.v1alpha1;
+
+option java_multiple_files = true;
+option java_outer_classname = "RuleProto";
+option java_package = "com.heldertheking.exochat.common.v1alpha1";
+
+// One explicit decision of a layer about a rule.
+message RuleSetting {
+  Rule rule = 1;
+  // (-- api-linter: core::0216::state-field-output-only=disabled
+  //     aip.dev/not-precedent: this is the decision of a layer, an input, not a lifecycle state. --)
+  RuleState state = 2;
+}
+
+// An action that can be allowed or denied. Whether an account may do it is resolved from layers, from the most
+// general to the most specific: the standing of the account and the overrides set on it by the platform (a denial
+// there always wins), then the roles of a server, then the overwrites of a channel. A rule that nothing sets falls
+// back to its default, which is documented per value.
+enum Rule {
+  RULE_UNSPECIFIED = 0;
+  // Create a server. Default: allowed.
+  RULE_CREATE_SERVER = 1;
+  // Send friend requests to other accounts. Default: allowed.
+  RULE_SEND_FRIEND_REQUESTS = 2;
+  // Create invites to a server. Default: allowed.
+  RULE_CREATE_INVITE = 3;
+  // Change the settings of a server. Default: denied.
+  RULE_MANAGE_SERVER = 4;
+  // Create, change and delete roles of a server. Default: denied.
+  RULE_MANAGE_ROLES = 5;
+  // Create, change and delete channels of a server. Default: denied.
+  RULE_MANAGE_CHANNELS = 6;
+  // Change the nickname and roles of members and remove them from a server. Default: denied.
+  RULE_MANAGE_MEMBERS = 7;
+  // See a channel and read its messages. Default: allowed.
+  RULE_VIEW_CHANNEL = 8;
+  // Send messages in a channel. Default: allowed.
+  RULE_SEND_MESSAGES = 9;
+  // Edit and delete the messages of others. Default: denied.
+  RULE_MANAGE_MESSAGES = 10;
+  // Join a voice channel. Default: allowed.
+  RULE_CONNECT = 11;
+  // Speak in a voice channel. Default: allowed.
+  RULE_SPEAK = 12;
+}
+
+// The state a layer gives to a rule. A layer that says nothing about a rule has no RuleSetting for it, the rule is
+// inherited from the more general layers.
+enum RuleState {
+  RULE_STATE_UNSPECIFIED = 0;
+  RULE_STATE_ALLOW = 1;
+  RULE_STATE_DENY = 2;
+}

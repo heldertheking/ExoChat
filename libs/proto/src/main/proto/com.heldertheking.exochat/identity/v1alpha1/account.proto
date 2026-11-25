@@ -64,6 +64,16 @@ message Account {
     plural: "accounts"
   };
 
+  // The standing of an account decides its base rule set: a MEMBER uses the application normally, a RESTRICTED
+  // account is limited by a general rule set, a SUSPENDED account can do nothing. Set by the platform, never by the
+  // account or a server. Rules set on the account by the platform refine it.
+  enum AccountStanding {
+    ACCOUNT_STANDING_UNSPECIFIED = 0;
+    ACCOUNT_STANDING_MEMBER = 1;
+    ACCOUNT_STANDING_RESTRICTED = 2;
+    ACCOUNT_STANDING_SUSPENDED = 3;
+  }
+
   // (-- api-linter: core::0216::synonyms=disabled
   //     aip.dev/not-precedent: this is presence, not a lifecycle state, "status" is the common term. --)
   // Presence of an account. Live presence may be kept outside the database and filled in on read.
@@ -90,6 +100,8 @@ message Account {
   AccountStatus status = 5 [(google.api.field_behavior) = OPTIONAL];
 
   google.protobuf.Timestamp create_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  AccountStanding standing = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message ListAccountsRequest {

@@ -5,6 +5,7 @@ package com.heldertheking.exochat.db.schema;
 
 
 import com.heldertheking.exochat.db.schema.tables.Account;
+import com.heldertheking.exochat.db.schema.tables.AccountRule;
 import com.heldertheking.exochat.db.schema.tables.Relationship;
 import com.heldertheking.exochat.db.schema.tables.Session;
 import com.heldertheking.exochat.db.schema.tables.User;
@@ -20,6 +21,11 @@ public class Tables {
      * The table <code>account</code>.
      */
     public static final Account ACCOUNT = Account.ACCOUNT;
+
+    /**
+     * The table <code>account_rule</code>.
+     */
+    public static final AccountRule ACCOUNT_RULE = AccountRule.ACCOUNT_RULE;
 
     /**
      * The table <code>relationship</code>.
