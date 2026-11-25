@@ -7,14 +7,16 @@ import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "RelationshipProto";
 option java_package = "com.heldertheking.exochat.identity.v1alpha1";
 
-// Manages the social links (friends, requests, blocks) of an account to other accounts.
+// Manages the social links (friends, requests, blocks) of an account to other accounts. A friendship or a pending
+// request exists once on each side: the sender sees PENDING_OUTGOING, the receiver PENDING_INCOMING, and both see
+// FRIEND once the request is accepted. A block exists on the side of the blocker only, the blocked account learns
+// nothing about it.
 service RelationshipService {
   // Lists the relationships of an account.
   rpc ListRelationships(ListRelationshipsRequest) returns (ListRelationshipsResponse) {
@@ -30,7 +32,9 @@ service RelationshipService {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  // Creates a relationship, for example a friend request to another account.
+  // Sends a friend request to the target account. If the target already sent one to this account, both become
+  // friends at once. Fails with FAILED_PRECONDITION if this account blocked the target and with ALREADY_EXISTS if
+  // there already is a request or a friendship.
   rpc CreateRelationship(CreateRelationshipRequest) returns (Relationship) {
     option (google.api.http) = {
       post: "/v1alpha1/{parent=users/*/accounts/*}/relationships"
@@ -39,16 +43,7 @@ service RelationshipService {
     option (google.api.method_signature) = "parent,relationship";
   }
 
-  // Updates a relationship.
-  rpc UpdateRelationship(UpdateRelationshipRequest) returns (Relationship) {
-    option (google.api.http) = {
-      patch: "/v1alpha1/{relationship.name=users/*/accounts/*/relationships/*}"
-      body: "relationship"
-    };
-    option (google.api.method_signature) = "relationship,update_mask";
-  }
-
-  // Deletes a relationship, for example to unfriend or unblock.
+  // Deletes a relationship: unfriends, withdraws a request, declines an incoming one or removes a block.
   rpc DeleteRelationship(DeleteRelationshipRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1alpha1/{name=users/*/accounts/*/relationships/*}"};
     option (google.api.method_signature) = "name";
@@ -63,8 +58,8 @@ service RelationshipService {
     option (google.api.method_signature) = "name";
   }
 
-  // Rejects an incoming friend request.
-  rpc RejectRelationship(RejectRelationshipRequest) returns (Relationship) {
+  // Rejects an incoming friend request. The request disappears on both sides.
+  rpc RejectRelationship(RejectRelationshipRequest) returns (RejectRelationshipResponse) {
     option (google.api.http) = {
       post: "/v1alpha1/{name=users/*/accounts/*/relationships/*}:reject"
       body: "*"
@@ -72,13 +67,14 @@ service RelationshipService {
     option (google.api.method_signature) = "name";
   }
 
-  // Blocks the target account.
-  rpc BlockRelationship(BlockRelationshipRequest) returns (Relationship) {
+  // Blocks an account, whether or not there is a relationship with it yet. Any friendship or request between the
+  // two ends and disappears from the target's side.
+  rpc BlockAccount(BlockAccountRequest) returns (BlockAccountResponse) {
     option (google.api.http) = {
-      post: "/v1alpha1/{name=users/*/accounts/*/relationships/*}:block"
+      post: "/v1alpha1/{parent=users/*/accounts/*}/relationships:blockAccount"
       body: "*"
     };
-    option (google.api.method_signature) = "name";
+    option (google.api.method_signature) = "parent,target_account";
   }
 }
 
@@ -108,8 +104,8 @@ message Relationship {
     (google.api.field_behavior) = IMMUTABLE,
     (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
   ];
-  // Set by the server: PENDING_OUTGOING on creation, then changed through
-  // AcceptRelationship, RejectRelationship and BlockRelationship.
+  // Set by the server: PENDING_OUTGOING for a request this account sent, PENDING_INCOMING for one it received,
+  // FRIEND once a request was accepted, BLOCKED through BlockAccount.
   RelationshipType type = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
@@ -151,12 +147,6 @@ message CreateRelationshipRequest {
   // string relationship_id = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
-message UpdateRelationshipRequest {
-  Relationship relationship = 1 [(google.api.field_behavior) = REQUIRED];
-
-  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
-}
-
 message DeleteRelationshipRequest {
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
@@ -178,9 +168,22 @@ message RejectRelationshipRequest {
   ];
 }
 
-message BlockRelationshipRequest {
-  string name = 1 [
+message RejectRelationshipResponse {}
+
+message BlockAccountRequest {
+  string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Relationship"}
+    (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Relationship"}
   ];
+
+  // Resource name of the account to block.
+  string target_account = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+}
+
+message BlockAccountResponse {
+  // The block, as seen by the blocking account.
+  Relationship relationship = 1;
 }

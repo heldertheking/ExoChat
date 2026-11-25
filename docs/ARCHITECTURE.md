@@ -132,6 +132,19 @@ The client acknowledgement is tied to the database commit, not to email, journal
 | Extensions | Manifests, installs, grants, versions |
 | Integrations | External provider credentials and adapters |
 
+## Layers inside a module (same convention as app-gateway)
+
+Each domain package in `app` has the same few classes, and the names say what they are:
+
+| Class | Role (REST equivalent) | Does |
+|---|---|---|
+| `*GrpcService` | controller | Parses the request (`XName.fromName(...)`, no wrappers), asks the permission checker, calls the repository, maps the result to protobuf. No business rules, no SQL. |
+| `*PermissionChecker` | authorization | Decides with the `PermissionEvaluator` whether the caller may do it, throws `AccessDeniedException`. Wildcard names are denied here. |
+| `*Repository` | service layer | The business rules **and** the data access in one place, written directly with jOOQ (jOOQ is the data access layer, there is no separate repository below it). Validation, state machines, transactions, `update_mask` handling with `MaskedMapper`, list queries with quela. Throws `StatusRuntimeException` for problems the caller should see. |
+| `*Mapper` | | Database records to protobuf. |
+
+Exceptions that leave a `GrpcService` are translated once, by the `GrpcExceptionHandler`s in `app/grpc/error` (statuses, security, resource names that do not parse, unknown `update_mask` paths, quela errors).
+
 ## Initial deployment topology
 
 Start with:

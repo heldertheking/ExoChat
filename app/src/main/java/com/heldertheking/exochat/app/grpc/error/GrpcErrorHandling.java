@@ -11,6 +11,8 @@ import org.springframework.grpc.server.exception.GrpcExceptionHandler;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 
+import com.google.api.pathtemplate.ValidationException;
+import com.heldertheking.exochat.app.grpc.UnmappedPropertyException;
 import com.heldertheking.quela.FieldParseException;
 import com.heldertheking.quela.FieldResolutionException;
 import com.heldertheking.quela.orderby.OrderByParseException;
@@ -36,6 +38,11 @@ class GrpcErrorHandling {
     @Bean
     SecurityExceptionHandler securityExceptionHandler() {
         return new SecurityExceptionHandler();
+    }
+
+    @Bean
+    RequestExceptionHandler requestExceptionHandler() {
+        return new RequestExceptionHandler();
     }
 
     @Bean
@@ -82,6 +89,21 @@ class GrpcErrorHandling {
                             .asException();
                 default -> null;
             };
+        }
+    }
+
+    /// A resource name that does not parse and an `update_mask` that names an unknown or unchangeable property are
+    /// INVALID_ARGUMENT, the caller sent something that can never work.
+    @Order(-5)
+    static class RequestExceptionHandler implements GrpcExceptionHandler {
+        @Override
+        public @Nullable StatusException handleException(Throwable exception) {
+            if (exception instanceof ValidationException || exception instanceof UnmappedPropertyException) {
+                return Status.INVALID_ARGUMENT
+                        .withDescription(exception.getMessage())
+                        .asException();
+            }
+            return null;
         }
     }
 

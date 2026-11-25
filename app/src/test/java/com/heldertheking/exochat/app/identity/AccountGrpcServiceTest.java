@@ -89,13 +89,13 @@ class AccountGrpcServiceTest extends GrpcIntegrationTestSupport {
     void createAccount_should_stopAtTheLimit() {
         var alice = register("alice@example.com", "alice");
         var stub = accounts(alice);
-        for (int i = 1; i < AccountGrpcService.MAX_ACCOUNTS_PER_USER; i++) {
+        for (int i = 1; i < AccountRepository.MAX_ACCOUNTS_PER_USER; i++) {
             stub.createAccount(create(alice, "alice_" + i));
         }
 
         assertThat(codeOf(() -> stub.createAccount(create(alice, "one_too_many"))))
                 .isEqualTo(Status.Code.FAILED_PRECONDITION);
-        assertThat(dsl.fetchCount(ACCOUNT)).isEqualTo(AccountGrpcService.MAX_ACCOUNTS_PER_USER);
+        assertThat(dsl.fetchCount(ACCOUNT)).isEqualTo(AccountRepository.MAX_ACCOUNTS_PER_USER);
     }
 
     @Test
@@ -170,6 +170,9 @@ class AccountGrpcServiceTest extends GrpcIntegrationTestSupport {
         assertThat(codeOf(() -> stub.getAccount(GetAccountRequest.newBuilder()
                         .setName("users/-/accounts/-")
                         .build())))
+                .isEqualTo(Status.Code.PERMISSION_DENIED);
+        assertThat(codeOf(() -> stub.getAccount(
+                        GetAccountRequest.newBuilder().setName("nope").build())))
                 .isEqualTo(Status.Code.INVALID_ARGUMENT);
     }
 

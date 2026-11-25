@@ -3,7 +3,8 @@ package com.heldertheking.exochat.app.auth;
 import org.springframework.stereotype.Service;
 
 import com.google.protobuf.Empty;
-import com.heldertheking.exochat.app.grpc.NameParsing;
+import com.heldertheking.exochat.api.identity.SessionName;
+import com.heldertheking.exochat.api.identity.UserName;
 import com.heldertheking.exochat.app.security.PermissionEvaluator;
 import com.heldertheking.exochat.identity.v1alpha1.DeleteSessionRequest;
 import com.heldertheking.exochat.identity.v1alpha1.GetSessionRequest;
@@ -33,7 +34,7 @@ class SessionGrpcService extends SessionServiceGrpc.SessionServiceImplBase {
 
     @Override
     public void listSessions(ListSessionsRequest request, StreamObserver<ListSessionsResponse> responseObserver) {
-        var parent = NameParsing.user("parent", request.getParent());
+        var parent = UserName.fromName(request.getParent());
         permissionChecker.verifyListPermission(parent);
         var currentSession = permissionEvaluator.currentSessionId();
         var page = sessions.list(
@@ -51,7 +52,7 @@ class SessionGrpcService extends SessionServiceGrpc.SessionServiceImplBase {
 
     @Override
     public void getSession(GetSessionRequest request, StreamObserver<Session> responseObserver) {
-        var name = NameParsing.session("name", request.getName());
+        var name = SessionName.fromName(request.getName());
         permissionChecker.verifyReadPermission(name);
         var row = sessions.find(name.getParent().getPersistenceId(), name.getPersistenceId())
                 .orElseThrow(() ->
@@ -62,7 +63,7 @@ class SessionGrpcService extends SessionServiceGrpc.SessionServiceImplBase {
 
     @Override
     public void deleteSession(DeleteSessionRequest request, StreamObserver<Empty> responseObserver) {
-        var name = NameParsing.session("name", request.getName());
+        var name = SessionName.fromName(request.getName());
         permissionChecker.verifyDeletePermission(name);
         if (!sessions.delete(name.getParent().getPersistenceId(), name.getPersistenceId())) {
             throw Status.NOT_FOUND.withDescription("session not found").asRuntimeException();

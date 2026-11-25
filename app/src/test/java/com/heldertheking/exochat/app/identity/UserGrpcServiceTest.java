@@ -47,6 +47,11 @@ class UserGrpcServiceTest extends GrpcIntegrationTestSupport {
                 .isEqualTo(Status.Code.PERMISSION_DENIED);
         assertThat(codeOf(() -> users(alice.getTokens().getAccessToken())
                         .getUser(GetUserRequest.newBuilder().setName("users/-").build())))
+                .as("wildcard names are denied by the permission checker")
+                .isEqualTo(Status.Code.PERMISSION_DENIED);
+        assertThat(codeOf(() -> users(alice.getTokens().getAccessToken())
+                        .getUser(GetUserRequest.newBuilder().setName("nope").build())))
+                .as("a name that does not parse")
                 .isEqualTo(Status.Code.INVALID_ARGUMENT);
         assertThat(codeOf(() -> UserServiceGrpc.newBlockingStub(channel)
                         .getUser(GetUserRequest.newBuilder()

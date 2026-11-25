@@ -34,7 +34,7 @@ final class AuthMapper {
         return builder.build();
     }
 
-    static AuthTokens tokens(AuthenticationService.Authenticated authenticated) {
+    static AuthTokens tokens(AuthRepository.Authenticated authenticated) {
         return AuthTokens.newBuilder()
                 .setAccessToken(authenticated.accessToken())
                 .setAccessTokenExpireTime(timestamp(authenticated.accessTokenExpireTime()))

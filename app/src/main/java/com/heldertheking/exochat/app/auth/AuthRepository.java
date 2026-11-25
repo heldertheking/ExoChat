@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import com.heldertheking.exochat.api.id.UuidV7;
 import com.heldertheking.exochat.app.identity.IdentityInput;
@@ -26,11 +26,12 @@ import com.heldertheking.exochat.db.schema.tables.records.UserRecord;
 
 import io.grpc.Status;
 
-/// Registers users and creates, renews and checks their sessions (ADR-012). Problems are reported as
+/// The service layer of the authentication: registers users and creates, renews and checks their sessions
+/// (ADR-012). Problems are reported as
 /// [io.grpc.StatusRuntimeException] with the gRPC status the caller should see.
-@Service
-public class AuthenticationService {
-    private static final Logger LOG = LoggerFactory.getLogger(AuthenticationService.class);
+@Repository
+public class AuthRepository {
+    private static final Logger LOG = LoggerFactory.getLogger(AuthRepository.class);
     private static final int MAX_DEVICE_LABEL_LENGTH = 100;
 
     private final DSLContext dsl;
@@ -39,7 +40,7 @@ public class AuthenticationService {
     private final AuthProperties properties;
     private final Clock clock;
 
-    public AuthenticationService(
+    public AuthRepository(
             DSLContext dsl,
             PasswordHasher passwordHasher,
             AccessTokens accessTokens,
