@@ -4,17 +4,18 @@
 
 | Entity | Key fields / purpose |
 |---|---|
-| User | Global account identity |
-| Profile | Display name, avatar, profile preferences |
+| User | Root login identity (`users/{user}`); owns several Accounts |
+| Account | Public persona (`users/{user}/accounts/{account}`): username, display name, avatar, status |
+| Relationship | Friend/pending/blocked link between two Accounts |
 | Session | Device/session lifecycle, refresh token family |
-| Community | Name, owner, visibility, settings |
-| Membership | User-community relationship and state |
-| Role | Community-defined permission bundle |
-| MembershipRole | Role assignments |
-| Space | Community-scoped communication or activity container |
-| Conversation | Direct or group conversation |
-| ConversationMember | Membership and read cursor |
-| Message | Author, content, server sequence, timestamps |
+| Server | Community (`servers/{server}`): name, icon, owner account |
+| Member | Account-server relationship (`servers/{server}/members/{member}`), nickname, role assignments |
+| Role | Server-defined permission bundle (bitmask) |
+| Invite | Shareable join code for a server |
+| Channel | Unified conversation container: DIRECT, GROUP_DIRECT or SERVER_TEXT. Canonical name `channels/{channel}`, server channels also addressable as `servers/{server}/channels/{channel}` |
+| ChannelParticipant | Participant and read cursor of a direct or group channel |
+| ChannelOverwrite | Per-channel allow/deny permission bitmasks for a Role or Account |
+| Message | Author, content, optional reply, timestamps (`channels/{channel}/messages/{message}`) |
 | Reaction | User reaction to a message |
 | Attachment | Object-storage key, metadata, ownership |
 | OutboxEvent | Durable event awaiting publication |
@@ -25,9 +26,11 @@
 
 ## Ownership rules
 
-- Identity owns global users and sessions.
-- Community owns communities, memberships, roles and spaces.
-- Messaging owns conversations, messages, reactions and per-conversation sequences.
+- Identity owns users, accounts, relationships and sessions.
+- Community owns servers, members, roles and invites.
+- Messaging owns channels (including server channels, which reference their server), participants, overwrites, messages, reactions and per-channel sequences.
+
+Proto packages, `libs/api` packages and these module names are the same: `identity`, `community`, `messaging`.
 - Content owns attachment metadata; binary data lives in object storage.
 - Extensions own installation metadata and grants.
 - Each module exposes application interfaces rather than allowing cross-module table access.

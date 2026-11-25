@@ -1,6 +1,6 @@
 # libs/api
 
-Home of the **resource name classes** for ExoChat's API objects (`UserName`, later `CommunityName`, `ChannelName`, ...). 
+Home of the **resource name classes** for ExoChat's API objects (`UserName`, `ServerName`, `ChannelName`, ...). Packages mirror the proto domains: `identity`, `community`, `messaging`.
 
 ## Purpose
 
@@ -12,17 +12,17 @@ All ids are UUIDv7 (ADR-011); `-` in the last segment is the wildcard (a wildcar
 
 | Package | Class | Pattern |
 |---|---|---|
-| `user` | `UserName` | `users/{user}` |
-| `user` | `AccountName` | `users/{user}/accounts/{account}` |
-| `user` | `RelationshipName` | `users/{user}/accounts/{account}/relationships/{relationship}` |
-| `server` | `ServerName` | `servers/{server}` |
-| `server` | `MemberName` | `servers/{server}/members/{member}` |
-| `server` | `RoleName` | `servers/{server}/roles/{role}` |
-| `server` | `InviteName` | `servers/{server}/invites/{invite}` |
-| `channel` | `ChannelName` | `channels/{channel}` (DIRECT, GROUP_DIRECT, SERVER_TEXT, SERVER_VOICE) |
-| `channel` | `MessageName` | `channels/{channel}/messages/{message}`: the only way to address a message |
-| `channel` | `ParticipantName` | `channels/{channel}/participants/{participant}` (direct channels) |
-| `channel` | `OverwriteName` | `channels/{channel}/overwrites/{overwrite}` (server channels) |
+| `identity` | `UserName` | `users/{user}` |
+| `identity` | `AccountName` | `users/{user}/accounts/{account}` |
+| `identity` | `RelationshipName` | `users/{user}/accounts/{account}/relationships/{relationship}` |
+| `community` | `ServerName` | `servers/{server}` |
+| `community` | `MemberName` | `servers/{server}/members/{member}` |
+| `community` | `RoleName` | `servers/{server}/roles/{role}` |
+| `community` | `InviteName` | `servers/{server}/invites/{invite}` |
+| `messaging` | `ChannelName` | `channels/{channel}` (canonical; the proto also accepts the alias `servers/{server}/channels/{channel}`, not modelled here yet) |
+| `messaging` | `MessageName` | `channels/{channel}/messages/{message}`: the only way to address a message |
+| `messaging` | `ChannelParticipantName` | `channels/{channel}/participants/{participant}` (direct channels) |
+| `messaging` | `ChannelOverwriteName` | `channels/{channel}/overwrites/{overwrite}` (server channels) |
 
 Only the names exist so far, not the domain objects. A member or participant refers to its account with the string `users/{user}/accounts/{account}` (parse it with `AccountName.fromName`); that is a reference, not part of the member name.
 
@@ -47,7 +47,7 @@ src/main/java/com/heldertheking/exochat/api/<domain>/<Thing>Name.java
 src/test/java/com/heldertheking/exochat/api/<domain>/<Thing>NameTest.java
 ```
 
-Use the same `<domain>` names as the proto packages (`user`, `health`, ...).
+Use the same `<domain>` names as the proto packages (`identity`, `community`, `messaging`, `health`, ...).
 
 ## Conventions (when adding the first names)
 
@@ -58,4 +58,4 @@ Use the same `<domain>` names as the proto packages (`user`, `health`, ...).
 
 ## Build and test
 
-`./gradlew :libs:api:test`. Use `user/UserName` (top-level) and `user/AccountName` (nested) as templates for new names.
+`./gradlew :libs:api:test`. Use `identity/UserName` (top-level) and `identity/AccountName` (nested) as templates for new names.
