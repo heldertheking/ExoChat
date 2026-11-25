@@ -160,9 +160,10 @@ public class PaginatorImpl implements Paginator {
             return "";
         }
         var checksum = computeChecksum(token.getRequest());
-        var orderByValues = token.getRequest().orderByCondition().fieldDefinitions().stream()
-                .map(fieldDefinition -> serializeColumnValue(lastRecord, fieldDefinition))
-                .toList();
+        var orderByValues = new ArrayList<@Nullable String>();
+        for (var fieldDefinition : token.getRequest().orderByCondition().fieldDefinitions()) {
+            orderByValues.add(serializeColumnValue(lastRecord, fieldDefinition));
+        }
         return serializer.serialize(new PaginationTokenSerializer.Token(checksum, orderByValues));
     }
 }

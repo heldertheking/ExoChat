@@ -43,12 +43,12 @@ final class AuthMapper {
         return builder.build();
     }
 
-    /// The session as seen by the caller that just used it, so `current` is true.
-    static Session session(SessionRecord session) {
+    /// @param current whether the session is the one the request was made with
+    static Session session(SessionRecord session, boolean current) {
         var userName = UserName.of(session.getUserId());
         var builder = Session.newBuilder()
                 .setName(SessionName.of(userName, session.getId()).toString())
-                .setCurrent(true)
+                .setCurrent(current)
                 .setCreateTime(timestamp(session.getCreateTime()))
                 .setLastUsedTime(timestamp(session.getLastUsedTime()))
                 .setExpireTime(timestamp(session.getExpireTime()));

@@ -2,6 +2,8 @@ package com.heldertheking.quela.pagination;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 /// Interface for serializing and deserializing pagination tokens to and from strings. Pagination state is exchanged
 /// as opaque strings between the client and the server. The server uses the token to determine the next page to return.
 /// [Token]s are used to represent the state of a paginated query. It consists of a checksum and a list of values
@@ -30,5 +32,5 @@ public interface PaginationTokenSerializer {
     /// @param values   list of values of ordered fields for the last value returned in a page.
     ///                 Note that some values may be null and [#serialize(Token)] and [#deserialize(String)]
     ///                 must properly serialize/deserialize null values.
-    record Token(long checksum, List<String> values) {}
+    record Token(long checksum, List<@Nullable String> values) {}
 }

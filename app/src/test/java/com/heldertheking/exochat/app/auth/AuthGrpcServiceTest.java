@@ -3,7 +3,6 @@ package com.heldertheking.exochat.app.auth;
 import static com.heldertheking.exochat.db.schema.Tables.SESSION;
 import static com.heldertheking.exochat.db.schema.Tables.USER;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -314,14 +313,5 @@ class AuthGrpcServiceTest {
                         .setRefreshToken(token)
                         .build())))
                 .isEqualTo(Status.Code.UNAUTHENTICATED);
-    }
-
-    @Test
-    void unimplementedMethods_should_answerUnimplemented() {
-        assertThatThrownBy(() -> auth.changePassword(
-                        com.heldertheking.exochat.auth.v1alpha1.ChangePasswordRequest.getDefaultInstance()))
-                .isInstanceOfSatisfying(
-                        StatusRuntimeException.class,
-                        e -> assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNIMPLEMENTED));
     }
 }

@@ -13,7 +13,7 @@ ExoChat issues its own credentials instead of delegating to an external identity
 - **Session:** one per logged in device, resource `users/{user}/sessions/{session}`, holds the refresh token family, the active account, device label and timestamps. Revoking it (`DeleteSession`) kills the refresh token at once; access tokens already issued live until they expire, which is why they are short. `ChangePassword` revokes all other sessions.
 - **Accounts:** a user owns several accounts (personas). The session has one active account, switched with `SwitchAccount`, which issues a new access token with the new `acc` claim.
 - **Unauthenticated calls:** only `RegisterUser`, `AuthenticateUser` and `RefreshSession`. Failures on login are `UNAUTHENTICATED` with one message for unknown email and wrong password. Rate limits per email and per address on all three.
-- **Transport:** `authorization: Bearer <access_token>` metadata on gRPC, the same on the gateway. WebSocket connections authenticate once with an access token and are closed when it expires unless refreshed.
+- **Transport:** `authorization: Bearer <access_token>` metadata on gRPC, the same on the gateway. A global gRPC interceptor (`AuthInterceptor`) verifies the token without a database lookup and exposes the identity to handlers as `Caller`; only the three unauthenticated calls and the health check are public. Services authorize on `Caller` (a user only reaches its own resources: `PERMISSION_DENIED` for another user's parent or name). WebSocket connections authenticate once with an access token and are closed when it expires unless refreshed.
 
 ## Configuration
 

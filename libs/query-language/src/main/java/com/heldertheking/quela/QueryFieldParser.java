@@ -113,6 +113,22 @@ public sealed interface QueryFieldParser<T> {
             return value.toString();
         }
     };
+    SingleDBFieldProperty<java.util.UUID, StringQueryFieldParser<java.util.UUID>> UUID =
+            () -> new StringQueryFieldParser<>() {
+                @Override
+                public java.util.UUID coerce(String value) {
+                    try {
+                        return java.util.UUID.fromString(value);
+                    } catch (IllegalArgumentException e) {
+                        throw new FieldParseException("failed to parse %s as a uuid".formatted(value));
+                    }
+                }
+
+                @Override
+                public String decoerce(java.util.UUID value) {
+                    return value.toString();
+                }
+            };
     LocalDateTimeTypeBuilder LOCAL_DATE_TIME = new LocalDateTimeTypeBuilder();
 
     non-sealed interface NumberQueryFieldParser<T> extends QueryFieldParser<T> {

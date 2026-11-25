@@ -34,6 +34,11 @@ return new ListPage<>(items, next.getPageToken());  // or ListPage.lastPage(item
 
 Page size defaults to 25, max 100 (override `getDefaultPageSize()` / `maxPageSize()` in the builder).
 
+## Ready made parts
+
+- `QueryFieldParser.UUID`, `STRING`, `LONG`, `DATE_TIME`, `LOCAL_DATE_TIME.atZone(zone)` and more for registering fields.
+- `Base64PaginationTokenSerializer`: a stateless `PaginationTokenSerializer` (base64url of checksum and values), use it in production.
+
 ## PageSpliterator (in-memory post-filter)
 
 If part of a filter cannot be expressed in SQL, wrap the query in a `PageSpliterator.PageFetcher` (offset based), stream it, apply the predicate and `.limit(pageSize)`. Pages are fetched only until enough rows survive. It costs one extra query to detect the end; return `Optional.empty()` for an empty page. Sequential streams only. Ported from the hospital_pool app-gateway.

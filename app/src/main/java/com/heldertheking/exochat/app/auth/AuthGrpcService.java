@@ -33,7 +33,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
                 request.getDeviceLabel());
         var response = RegisterUserResponse.newBuilder()
                 .setUser(AuthMapper.user(result.user()))
-                .setSession(AuthMapper.session(result.session()))
+                .setSession(AuthMapper.session(result.session(), true))
                 .setTokens(AuthMapper.tokens(result));
         if (result.account() != null) {
             response.setAccount(AuthMapper.account(result.account()));
@@ -48,7 +48,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         var result = authentication.authenticate(request.getEmail(), request.getPassword(), request.getDeviceLabel());
         responseObserver.onNext(AuthenticateUserResponse.newBuilder()
                 .setUser(AuthMapper.user(result.user()))
-                .setSession(AuthMapper.session(result.session()))
+                .setSession(AuthMapper.session(result.session(), true))
                 .setTokens(AuthMapper.tokens(result))
                 .build());
         responseObserver.onCompleted();
@@ -58,7 +58,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
     public void refreshSession(RefreshSessionRequest request, StreamObserver<RefreshSessionResponse> responseObserver) {
         var result = authentication.refresh(request.getRefreshToken());
         responseObserver.onNext(RefreshSessionResponse.newBuilder()
-                .setSession(AuthMapper.session(result.session()))
+                .setSession(AuthMapper.session(result.session(), true))
                 .setTokens(AuthMapper.tokens(result))
                 .build());
         responseObserver.onCompleted();
