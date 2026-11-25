@@ -12,6 +12,11 @@ databaseChangeLog:
         relationship is a social link from an owning account to a target account (proto Relationship). A friendship is
         two rows (one per account), a block a single row on the blocking side; type holds the RelationshipType
         without UNSPECIFIED.
+        session is one login of a user on one device (proto Session, ADR-012), name users/{user}/sessions/{session}.
+        It holds the refresh token family: only SHA-256 hashes are stored, the current one and the one it replaced
+        (presenting the replaced one again means theft and the session row is deleted). Revoking a session deletes the
+        row. expire_time slides with use, absolute_expire_time caps the session. If the active account is deleted
+        account_id becomes NULL and the next refresh falls back to the first account of the user.
       changes:
         - sql:
             sql: >
@@ -58,7 +63,30 @@ databaseChangeLog:
                 CONSTRAINT `fk_relationship_target` FOREIGN KEY (`target_account_id`) REFERENCES `account` (`id`) ON DELETE CASCADE,
                 KEY `ix_relationship_target` (`target_account_id`)
               )
+        - sql:
+            sql: >
+              CREATE TABLE `session` (
+                `id` UUID NOT NULL,
+                `user_id` UUID NOT NULL,
+                `account_id` UUID NULL,
+                `device_label` VARCHAR(100) NULL,
+                `refresh_token_hash` BINARY(32) NOT NULL,
+                `previous_refresh_token_hash` BINARY(32) NULL,
+                `create_time` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                `last_used_time` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                `expire_time` DATETIME(6) NOT NULL,
+                `absolute_expire_time` DATETIME(6) NOT NULL,
+                PRIMARY KEY (`id`),
+                CONSTRAINT `uq_session_refresh_token_hash` UNIQUE (`refresh_token_hash`),
+                CONSTRAINT `fk_session_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+                CONSTRAINT `fk_session_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`) ON DELETE SET NULL,
+                KEY `ix_session_user` (`user_id`, `id`),
+                KEY `ix_session_previous_refresh_token_hash` (`previous_refresh_token_hash`),
+                KEY `ix_session_expire_time` (`expire_time`)
+              )
       rollback:
+        - sql:
+            sql: DROP TABLE `session`
         - sql:
             sql: DROP TABLE `relationship`
         - sql:

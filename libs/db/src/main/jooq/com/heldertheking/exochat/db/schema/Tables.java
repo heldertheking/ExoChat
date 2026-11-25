@@ -6,6 +6,7 @@ package com.heldertheking.exochat.db.schema;
 
 import com.heldertheking.exochat.db.schema.tables.Account;
 import com.heldertheking.exochat.db.schema.tables.Relationship;
+import com.heldertheking.exochat.db.schema.tables.Session;
 import com.heldertheking.exochat.db.schema.tables.User;
 
 
@@ -24,6 +25,11 @@ public class Tables {
      * The table <code>relationship</code>.
      */
     public static final Relationship RELATIONSHIP = Relationship.RELATIONSHIP;
+
+    /**
+     * The table <code>session</code>.
+     */
+    public static final Session SESSION = Session.SESSION;
 
     /**
      * The table <code>user</code>.

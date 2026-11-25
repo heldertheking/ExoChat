@@ -6,9 +6,11 @@ package com.heldertheking.exochat.db.schema;
 
 import com.heldertheking.exochat.db.schema.tables.Account;
 import com.heldertheking.exochat.db.schema.tables.Relationship;
+import com.heldertheking.exochat.db.schema.tables.Session;
 import com.heldertheking.exochat.db.schema.tables.User;
 import com.heldertheking.exochat.db.schema.tables.records.AccountRecord;
 import com.heldertheking.exochat.db.schema.tables.records.RelationshipRecord;
+import com.heldertheking.exochat.db.schema.tables.records.SessionRecord;
 import com.heldertheking.exochat.db.schema.tables.records.UserRecord;
 
 import org.jooq.ForeignKey;
@@ -34,6 +36,8 @@ public class Keys {
     public static final UniqueKey<AccountRecord> KEY_ACCOUNT_UQ_ACCOUNT_USERNAME = Internal.createUniqueKey(Account.ACCOUNT, DSL.name("KEY_account_uq_account_username"), new TableField[] { Account.ACCOUNT.USERNAME }, true);
     public static final UniqueKey<RelationshipRecord> KEY_RELATIONSHIP_PRIMARY = Internal.createUniqueKey(Relationship.RELATIONSHIP, DSL.name("KEY_relationship_PRIMARY"), new TableField[] { Relationship.RELATIONSHIP.ID }, true);
     public static final UniqueKey<RelationshipRecord> KEY_RELATIONSHIP_UQ_RELATIONSHIP_OWNER_TARGET = Internal.createUniqueKey(Relationship.RELATIONSHIP, DSL.name("KEY_relationship_uq_relationship_owner_target"), new TableField[] { Relationship.RELATIONSHIP.OWNER_ACCOUNT_ID, Relationship.RELATIONSHIP.TARGET_ACCOUNT_ID }, true);
+    public static final UniqueKey<SessionRecord> KEY_SESSION_PRIMARY = Internal.createUniqueKey(Session.SESSION, DSL.name("KEY_session_PRIMARY"), new TableField[] { Session.SESSION.ID }, true);
+    public static final UniqueKey<SessionRecord> KEY_SESSION_UQ_SESSION_REFRESH_TOKEN_HASH = Internal.createUniqueKey(Session.SESSION, DSL.name("KEY_session_uq_session_refresh_token_hash"), new TableField[] { Session.SESSION.REFRESH_TOKEN_HASH }, true);
     public static final UniqueKey<UserRecord> KEY_USER_PRIMARY = Internal.createUniqueKey(User.USER, DSL.name("KEY_user_PRIMARY"), new TableField[] { User.USER.ID }, true);
     public static final UniqueKey<UserRecord> KEY_USER_UQ_USER_EMAIL = Internal.createUniqueKey(User.USER, DSL.name("KEY_user_uq_user_email"), new TableField[] { User.USER.EMAIL }, true);
     public static final UniqueKey<UserRecord> KEY_USER_UQ_USER_PHONE_NUMBER = Internal.createUniqueKey(User.USER, DSL.name("KEY_user_uq_user_phone_number"), new TableField[] { User.USER.PHONE_NUMBER }, true);
@@ -45,4 +49,6 @@ public class Keys {
     public static final ForeignKey<AccountRecord, UserRecord> FK_ACCOUNT_USER = Internal.createForeignKey(Account.ACCOUNT, DSL.name("fk_account_user"), new TableField[] { Account.ACCOUNT.USER_ID }, Keys.KEY_USER_PRIMARY, new TableField[] { User.USER.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<RelationshipRecord, AccountRecord> FK_RELATIONSHIP_OWNER = Internal.createForeignKey(Relationship.RELATIONSHIP, DSL.name("fk_relationship_owner"), new TableField[] { Relationship.RELATIONSHIP.OWNER_ACCOUNT_ID }, Keys.KEY_ACCOUNT_PRIMARY, new TableField[] { Account.ACCOUNT.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<RelationshipRecord, AccountRecord> FK_RELATIONSHIP_TARGET = Internal.createForeignKey(Relationship.RELATIONSHIP, DSL.name("fk_relationship_target"), new TableField[] { Relationship.RELATIONSHIP.TARGET_ACCOUNT_ID }, Keys.KEY_ACCOUNT_PRIMARY, new TableField[] { Account.ACCOUNT.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<SessionRecord, AccountRecord> FK_SESSION_ACCOUNT = Internal.createForeignKey(Session.SESSION, DSL.name("fk_session_account"), new TableField[] { Session.SESSION.ACCOUNT_ID }, Keys.KEY_ACCOUNT_PRIMARY, new TableField[] { Account.ACCOUNT.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<SessionRecord, UserRecord> FK_SESSION_USER = Internal.createForeignKey(Session.SESSION, DSL.name("fk_session_user"), new TableField[] { Session.SESSION.USER_ID }, Keys.KEY_USER_PRIMARY, new TableField[] { User.USER.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
 }

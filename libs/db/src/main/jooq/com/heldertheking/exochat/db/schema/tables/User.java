@@ -6,6 +6,7 @@ package com.heldertheking.exochat.db.schema.tables;
 
 import com.heldertheking.exochat.db.schema.Keys;
 import com.heldertheking.exochat.db.schema.tables.Account.AccountPath;
+import com.heldertheking.exochat.db.schema.tables.Session.SessionPath;
 import com.heldertheking.exochat.db.schema.tables.records.UserRecord;
 
 import java.time.LocalDateTime;
@@ -173,6 +174,18 @@ public class User extends TableImpl<UserRecord> {
             _account = new AccountPath(this, null, Keys.FK_ACCOUNT_USER.getInverseKey());
 
         return _account;
+    }
+
+    private transient SessionPath _session;
+
+    /**
+     * Get the implicit to-many join path to the <code>session</code> table
+     */
+    public SessionPath session() {
+        if (_session == null)
+            _session = new SessionPath(this, null, Keys.FK_SESSION_USER.getInverseKey());
+
+        return _session;
     }
 
     @Override

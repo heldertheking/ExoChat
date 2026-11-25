@@ -2,10 +2,12 @@ package com.heldertheking.exochat.app.user;
 
 import static com.heldertheking.exochat.db.schema.Tables.ACCOUNT;
 import static com.heldertheking.exochat.db.schema.Tables.RELATIONSHIP;
+import static com.heldertheking.exochat.db.schema.Tables.SESSION;
 import static com.heldertheking.exochat.db.schema.Tables.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.jooq.DSLContext;
@@ -106,6 +108,35 @@ class IdentityTablesTest {
     }
 
     @Test
+    void sessionRefreshTokenHashIsUniqueAndSessionsGoWithTheirUser() {
+        var user = insertUser("a@example.com", null);
+        var account = insertAccount(user, "alice");
+        insertSession(user, account, "hash-1");
+
+        assertThatThrownBy(() -> insertSession(user, account, "hash-1"))
+                .as("a refresh token hash identifies exactly one session")
+                .isInstanceOf(DataIntegrityViolationException.class);
+        insertSession(user, null, "hash-2");
+        assertThat(dsl.fetchCount(SESSION)).isEqualTo(2);
+
+        dsl.deleteFrom(USER).where(USER.ID.eq(user)).execute();
+
+        assertThat(dsl.fetchCount(SESSION)).isZero();
+    }
+
+    @Test
+    void deletingTheActiveAccountKeepsTheSessionWithoutAccount() {
+        var user = insertUser("a@example.com", null);
+        var account = insertAccount(user, "alice");
+        insertSession(user, account, "hash-1");
+
+        dsl.deleteFrom(ACCOUNT).where(ACCOUNT.ID.eq(account)).execute();
+
+        assertThat(dsl.select(SESSION.ACCOUNT_ID).from(SESSION).fetchOne(SESSION.ACCOUNT_ID))
+                .isNull();
+    }
+
+    @Test
     void updateTimeChangesOnUpdate() throws InterruptedException {
         var user = insertUser("a@example.com", null);
         var account = insertAccount(user, "alice");
@@ -141,6 +172,18 @@ class IdentityTablesTest {
                 .set(ACCOUNT.DISPLAY_NAME, username)
                 .execute();
         return id;
+    }
+
+    private void insertSession(UUID userId, UUID accountId, String refreshTokenHash) {
+        var now = LocalDateTime.now();
+        dsl.insertInto(SESSION)
+                .set(SESSION.ID, UuidV7.next())
+                .set(SESSION.USER_ID, userId)
+                .set(SESSION.ACCOUNT_ID, accountId)
+                .set(SESSION.REFRESH_TOKEN_HASH, refreshTokenHash.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                .set(SESSION.EXPIRE_TIME, now.plusDays(30))
+                .set(SESSION.ABSOLUTE_EXPIRE_TIME, now.plusDays(90))
+                .execute();
     }
 
     private void insertRelationship(UUID owner, UUID target, String type) {

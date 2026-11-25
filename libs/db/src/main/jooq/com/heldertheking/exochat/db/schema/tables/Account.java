@@ -7,6 +7,7 @@ package com.heldertheking.exochat.db.schema.tables;
 import com.heldertheking.exochat.db.schema.Indexes;
 import com.heldertheking.exochat.db.schema.Keys;
 import com.heldertheking.exochat.db.schema.tables.Relationship.RelationshipPath;
+import com.heldertheking.exochat.db.schema.tables.Session.SessionPath;
 import com.heldertheking.exochat.db.schema.tables.User.UserPath;
 import com.heldertheking.exochat.db.schema.tables.records.AccountRecord;
 
@@ -219,6 +220,18 @@ public class Account extends TableImpl<AccountRecord> {
             _fkRelationshipTarget = new RelationshipPath(this, null, Keys.FK_RELATIONSHIP_TARGET.getInverseKey());
 
         return _fkRelationshipTarget;
+    }
+
+    private transient SessionPath _session;
+
+    /**
+     * Get the implicit to-many join path to the <code>session</code> table
+     */
+    public SessionPath session() {
+        if (_session == null)
+            _session = new SessionPath(this, null, Keys.FK_SESSION_ACCOUNT.getInverseKey());
+
+        return _session;
     }
 
     @Override

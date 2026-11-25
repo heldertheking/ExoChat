@@ -6,6 +6,7 @@ package com.heldertheking.exochat.db.schema;
 
 import com.heldertheking.exochat.db.schema.tables.Account;
 import com.heldertheking.exochat.db.schema.tables.Relationship;
+import com.heldertheking.exochat.db.schema.tables.Session;
 
 import org.jooq.Index;
 import org.jooq.OrderField;
@@ -25,4 +26,7 @@ public class Indexes {
 
     public static final Index ACCOUNT_IX_ACCOUNT_USER = Internal.createIndex(DSL.name("ix_account_user"), Account.ACCOUNT, new OrderField[] { Account.ACCOUNT.USER_ID, Account.ACCOUNT.ID }, false);
     public static final Index RELATIONSHIP_IX_RELATIONSHIP_TARGET = Internal.createIndex(DSL.name("ix_relationship_target"), Relationship.RELATIONSHIP, new OrderField[] { Relationship.RELATIONSHIP.TARGET_ACCOUNT_ID }, false);
+    public static final Index SESSION_IX_SESSION_EXPIRE_TIME = Internal.createIndex(DSL.name("ix_session_expire_time"), Session.SESSION, new OrderField[] { Session.SESSION.EXPIRE_TIME }, false);
+    public static final Index SESSION_IX_SESSION_PREVIOUS_REFRESH_TOKEN_HASH = Internal.createIndex(DSL.name("ix_session_previous_refresh_token_hash"), Session.SESSION, new OrderField[] { Session.SESSION.PREVIOUS_REFRESH_TOKEN_HASH }, false);
+    public static final Index SESSION_IX_SESSION_USER = Internal.createIndex(DSL.name("ix_session_user"), Session.SESSION, new OrderField[] { Session.SESSION.USER_ID, Session.SESSION.ID }, false);
 }
