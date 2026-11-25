@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Import;
 import org.springframework.grpc.server.lifecycle.GrpcServerLifecycle;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import com.heldertheking.exochat.auth.v1alpha1.AuthServiceGrpc;
 import com.heldertheking.exochat.auth.v1alpha1.AuthenticateUserRequest;
@@ -59,11 +60,15 @@ class SessionGrpcServiceTest {
     private AuthGrpcServiceTest.MutableClock clock;
 
     @Autowired
-    private AccessTokens accessTokens;
+    private JwtDecoder jwtDecoder;
 
     private ManagedChannel channel;
     private AuthServiceGrpc.AuthServiceBlockingStub auth;
     private SessionServiceGrpc.SessionServiceBlockingStub sessions;
+
+    private TestClaims claims(String accessToken) {
+        return TestClaims.of(jwtDecoder.decode(accessToken));
+    }
 
     @BeforeEach
     void setUp() {
@@ -314,11 +319,10 @@ class SessionGrpcServiceTest {
 
         assertThat(response.getSession().getAccount()).isEqualTo(second);
         assertThat(response.getSession().getName()).isEqualTo(alice.getSession().getName());
-        var claims = accessTokens.verify(response.getAccessToken());
+        var claims = claims(response.getAccessToken());
         assertThat(second).endsWith("/accounts/" + claims.accountId());
         assertThat(claims.sessionId())
-                .isEqualTo(
-                        accessTokens.verify(alice.getTokens().getAccessToken()).sessionId());
+                .isEqualTo(claims(alice.getTokens().getAccessToken()).sessionId());
         assertThat(response.getAccessTokenExpireTime().getSeconds())
                 .isEqualTo(START.plus(Duration.ofMinutes(15)).getEpochSecond());
         assertThat(bearer(sessions, response.getAccessToken())
@@ -335,9 +339,7 @@ class SessionGrpcServiceTest {
         assertThat(refreshed.getSession().getAccount()).isEqualTo(second);
         assertThat(second)
                 .endsWith("/accounts/"
-                        + accessTokens
-                                .verify(refreshed.getTokens().getAccessToken())
-                                .accountId());
+                        + claims(refreshed.getTokens().getAccessToken()).accountId());
     }
 
     @Test

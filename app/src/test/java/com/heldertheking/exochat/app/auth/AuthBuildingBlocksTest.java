@@ -10,8 +10,11 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 
 import com.heldertheking.exochat.api.id.UuidV7;
+import com.heldertheking.exochat.app.security.AccessTokenDecoders;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 
@@ -57,16 +60,19 @@ class AuthBuildingBlocksTest {
         assertThat(a.hash()).isNotEqualTo(b.hash());
     }
 
+    private static JwtDecoder decoder(SigningKeys keys, Instant now) {
+        return AccessTokenDecoders.create(keys, properties(), Clock.fixed(now, ZoneOffset.UTC));
+    }
+
     @Test
     void accessToken_should_roundTrip() {
         var keys = new SigningKeys(properties());
         var user = UuidV7.next();
         var session = UuidV7.next();
         var account = UuidV7.next();
-        var accessTokens = tokens(keys, NOW);
 
-        var issued = accessTokens.issue(user, session, account);
-        var claims = accessTokens.verify(issued.token());
+        var issued = tokens(keys, NOW).issue(user, session, account);
+        var claims = TestClaims.of(decoder(keys, NOW).decode(issued.token()));
 
         assertThat(claims.userId()).isEqualTo(user);
         assertThat(claims.sessionId()).isEqualTo(session);
@@ -78,12 +84,9 @@ class AuthBuildingBlocksTest {
     @Test
     void accessToken_should_allowNoActiveAccount() {
         var keys = new SigningKeys(properties());
-        var accessTokens = tokens(keys, NOW);
+        var token = tokens(keys, NOW).issue(UuidV7.next(), UuidV7.next(), null).token();
 
-        var claims = accessTokens.verify(
-                accessTokens.issue(UuidV7.next(), UuidV7.next(), null).token());
-
-        assertThat(claims.accountId()).isNull();
+        assertThat(TestClaims.of(decoder(keys, NOW).decode(token)).accountId()).isNull();
     }
 
     @Test
@@ -91,10 +94,11 @@ class AuthBuildingBlocksTest {
         var keys = new SigningKeys(properties());
         var token = tokens(keys, NOW).issue(UuidV7.next(), UuidV7.next(), null).token();
 
-        var later = tokens(keys, NOW.plus(Duration.ofMinutes(15)));
-
-        assertThatThrownBy(() -> later.verify(token)).isInstanceOf(AccessTokens.InvalidAccessTokenException.class);
-        assertThat(tokens(keys, NOW.plus(Duration.ofMinutes(14))).verify(token)).isNotNull();
+        assertThatThrownBy(() -> decoder(keys, NOW.plus(Duration.ofMinutes(15)).plusSeconds(1))
+                        .decode(token))
+                .isInstanceOf(JwtException.class);
+        assertThat(decoder(keys, NOW.plus(Duration.ofMinutes(14))).decode(token))
+                .isNotNull();
     }
 
     @Test
@@ -104,15 +108,14 @@ class AuthBuildingBlocksTest {
                 .token();
         var otherKeys = new SigningKeys(properties());
 
-        assertThatThrownBy(() -> tokens(otherKeys, NOW).verify(token))
-                .isInstanceOf(AccessTokens.InvalidAccessTokenException.class);
+        assertThatThrownBy(() -> decoder(otherKeys, NOW).decode(token)).isInstanceOf(JwtException.class);
     }
 
     @Test
-    void accessToken_should_beRejected_when_tamperedOrUnsigned() {
+    void accessToken_should_beRejected_when_tamperedUnsignedOrFromAnotherIssuer() {
         var keys = new SigningKeys(properties());
-        var accessTokens = tokens(keys, NOW);
-        var token = accessTokens.issue(UuidV7.next(), UuidV7.next(), null).token();
+        var decoder = decoder(keys, NOW);
+        var token = tokens(keys, NOW).issue(UuidV7.next(), UuidV7.next(), null).token();
         var parts = token.split("\\.");
         var forgedPayload = java.util.Base64.getUrlEncoder()
                 .withoutPadding()
@@ -126,13 +129,25 @@ class AuthBuildingBlocksTest {
                         .expirationTime(java.util.Date.from(NOW.plusSeconds(600)))
                         .build())
                 .serialize();
+        var otherIssuer = new AccessTokens(
+                        new AuthProperties(
+                                "someone-else",
+                                Duration.ofMinutes(15),
+                                Duration.ofDays(30),
+                                Duration.ofDays(90),
+                                "test",
+                                null,
+                                null),
+                        keys,
+                        Clock.fixed(NOW, ZoneOffset.UTC))
+                .issue(UuidV7.next(), UuidV7.next(), null)
+                .token();
 
-        assertThatThrownBy(() -> accessTokens.verify(parts[0] + "." + forgedPayload + "." + parts[2]))
-                .isInstanceOf(AccessTokens.InvalidAccessTokenException.class);
-        assertThatThrownBy(() -> accessTokens.verify(unsigned))
-                .isInstanceOf(AccessTokens.InvalidAccessTokenException.class);
-        assertThatThrownBy(() -> accessTokens.verify("not a token"))
-                .isInstanceOf(AccessTokens.InvalidAccessTokenException.class);
+        assertThatThrownBy(() -> decoder.decode(parts[0] + "." + forgedPayload + "." + parts[2]))
+                .isInstanceOf(JwtException.class);
+        assertThatThrownBy(() -> decoder.decode(unsigned)).isInstanceOf(JwtException.class);
+        assertThatThrownBy(() -> decoder.decode("not a token")).isInstanceOf(JwtException.class);
+        assertThatThrownBy(() -> decoder.decode(otherIssuer)).isInstanceOf(JwtException.class);
     }
 
     @Test

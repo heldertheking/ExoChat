@@ -214,17 +214,17 @@ public class AuthenticationService {
     ///
     /// @throws io.grpc.StatusRuntimeException NOT_FOUND if the user has no such account, UNAUTHENTICATED if the
     ///         session was revoked in the meantime
-    public SwitchedAccount switchAccount(Caller caller, UUID accountId) {
+    public SwitchedAccount switchAccount(UUID userId, UUID sessionId, UUID accountId) {
         return dsl.transactionResult(configuration -> {
             var tx = configuration.dsl();
             var account = tx.selectFrom(ACCOUNT)
-                    .where(ACCOUNT.ID.eq(accountId).and(ACCOUNT.USER_ID.eq(caller.userId())))
+                    .where(ACCOUNT.ID.eq(accountId).and(ACCOUNT.USER_ID.eq(userId)))
                     .fetchOne();
             if (account == null) {
                 throw Status.NOT_FOUND.withDescription("account not found").asRuntimeException();
             }
             var session = tx.selectFrom(SESSION)
-                    .where(SESSION.ID.eq(caller.sessionId()).and(SESSION.USER_ID.eq(caller.userId())))
+                    .where(SESSION.ID.eq(sessionId).and(SESSION.USER_ID.eq(userId)))
                     .forUpdate()
                     .fetchOne();
             if (session == null) {
@@ -234,7 +234,7 @@ public class AuthenticationService {
             }
             session.setAccountId(account.getId());
             session.update();
-            return new SwitchedAccount(session, accessTokens.issue(caller.userId(), session.getId(), account.getId()));
+            return new SwitchedAccount(session, accessTokens.issue(userId, session.getId(), account.getId()));
         });
     }
 
@@ -242,8 +242,8 @@ public class AuthenticationService {
     ///
     /// @throws io.grpc.StatusRuntimeException PERMISSION_DENIED if the old password is wrong, INVALID_ARGUMENT if
     ///         the new one is not acceptable or equals the old one
-    public void changePassword(Caller caller, String oldPassword, String newPassword) {
-        var user = dsl.selectFrom(USER).where(USER.ID.eq(caller.userId())).fetchOne();
+    public void changePassword(UUID userId, UUID sessionId, String oldPassword, String newPassword) {
+        var user = dsl.selectFrom(USER).where(USER.ID.eq(userId)).fetchOne();
         if (user == null) {
             throw Status.UNAUTHENTICATED.withDescription("user does not exist").asRuntimeException();
         }
@@ -265,10 +265,10 @@ public class AuthenticationService {
             var tx = configuration.dsl();
             tx.update(USER)
                     .set(USER.PASSWORD_HASH, newHash)
-                    .where(USER.ID.eq(caller.userId()))
+                    .where(USER.ID.eq(userId))
                     .execute();
             tx.deleteFrom(SESSION)
-                    .where(SESSION.USER_ID.eq(caller.userId()).and(SESSION.ID.ne(caller.sessionId())))
+                    .where(SESSION.USER_ID.eq(userId).and(SESSION.ID.ne(sessionId)))
                     .execute();
         });
     }

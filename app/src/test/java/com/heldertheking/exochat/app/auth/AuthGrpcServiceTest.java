@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.grpc.server.lifecycle.GrpcServerLifecycle;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import com.heldertheking.exochat.api.id.UuidV7;
 import com.heldertheking.exochat.auth.v1alpha1.AuthServiceGrpc;
@@ -89,13 +90,17 @@ class AuthGrpcServiceTest {
     private DSLContext dsl;
 
     @Autowired
-    private AccessTokens accessTokens;
+    private JwtDecoder jwtDecoder;
 
     @Autowired
     private MutableClock clock;
 
     private ManagedChannel channel;
     private AuthServiceGrpc.AuthServiceBlockingStub auth;
+
+    private TestClaims claims(String accessToken) {
+        return TestClaims.of(jwtDecoder.decode(accessToken));
+    }
 
     @BeforeEach
     void setUp() {
@@ -147,7 +152,7 @@ class AuthGrpcServiceTest {
         assertThat(response.getSession().getDeviceLabel()).isEqualTo("test device");
         assertThat(response.getSession().getCurrent()).isTrue();
 
-        var claims = accessTokens.verify(response.getTokens().getAccessToken());
+        var claims = claims(response.getTokens().getAccessToken());
         assertThat("users/" + claims.userId()).isEqualTo(response.getUser().getName());
         assertThat(response.getSession().getName()).endsWith("/sessions/" + claims.sessionId());
         assertThat(response.getAccount().getName()).endsWith("/accounts/" + claims.accountId());
@@ -194,8 +199,7 @@ class AuthGrpcServiceTest {
                 .isNotEqualTo(registered.getSession().getName());
         assertThat(response.getSession().getAccount())
                 .isEqualTo(registered.getAccount().getName());
-        assertThat(accessTokens.verify(response.getTokens().getAccessToken()).accountId())
-                .isNotNull();
+        assertThat(claims(response.getTokens().getAccessToken()).accountId()).isNotNull();
         assertThat(dsl.fetchCount(SESSION)).isEqualTo(2);
     }
 
@@ -230,8 +234,7 @@ class AuthGrpcServiceTest {
     void refreshSession_should_rotateTheRefreshToken() {
         var registered = register("alice@example.com", "alice");
         var firstRefresh = registered.getTokens().getRefreshToken();
-        var sessionId =
-                accessTokens.verify(registered.getTokens().getAccessToken()).sessionId();
+        var sessionId = claims(registered.getTokens().getAccessToken()).sessionId();
         clock.advance(Duration.ofMinutes(20));
 
         var refreshed = auth.refreshSession(
@@ -242,8 +245,7 @@ class AuthGrpcServiceTest {
         assertThat(refreshed.getTokens().getRefreshToken()).isNotEqualTo(firstRefresh);
         assertThat(refreshed.getTokens().getAccessToken())
                 .isNotEqualTo(registered.getTokens().getAccessToken());
-        assertThat(accessTokens.verify(refreshed.getTokens().getAccessToken()).sessionId())
-                .isEqualTo(sessionId);
+        assertThat(claims(refreshed.getTokens().getAccessToken()).sessionId()).isEqualTo(sessionId);
         assertThat(refreshed.getSession().getLastUsedTime().getSeconds())
                 .isEqualTo(START.plus(Duration.ofMinutes(20)).getEpochSecond());
         // the new token keeps working

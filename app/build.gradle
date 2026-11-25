@@ -18,8 +18,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-liquibase'
     implementation libs.spring.grpc.server.starter
-    // authentication (ADR-012): Argon2id (needs Bouncy Castle) and ES256 JWTs
-    implementation 'org.springframework.security:spring-security-crypto'
+    // authentication (ADR-012): Spring Security (gRPC resource server), Argon2id (needs Bouncy Castle), ES256 JWTs
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation libs.bouncycastle.bcprov
     implementation libs.nimbus.jose.jwt
 

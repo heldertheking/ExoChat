@@ -2,6 +2,7 @@ package com.heldertheking.exochat.app.auth;
 
 import org.springframework.stereotype.Service;
 
+import com.heldertheking.exochat.app.security.PermissionEvaluator;
 import com.heldertheking.exochat.auth.v1alpha1.AuthServiceGrpc;
 import com.heldertheking.exochat.auth.v1alpha1.AuthenticateUserRequest;
 import com.heldertheking.exochat.auth.v1alpha1.AuthenticateUserResponse;
@@ -14,16 +15,22 @@ import com.heldertheking.exochat.auth.v1alpha1.RegisterUserResponse;
 import com.heldertheking.exochat.auth.v1alpha1.SwitchAccountRequest;
 import com.heldertheking.exochat.auth.v1alpha1.SwitchAccountResponse;
 
-import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 /// gRPC adapter of [AuthenticationService].
 @Service
 class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
     private final AuthenticationService authentication;
+    private final AuthPermissionChecker permissionChecker;
+    private final PermissionEvaluator permissionEvaluator;
 
-    AuthGrpcService(AuthenticationService authentication) {
+    AuthGrpcService(
+            AuthenticationService authentication,
+            AuthPermissionChecker permissionChecker,
+            PermissionEvaluator permissionEvaluator) {
         this.authentication = authentication;
+        this.permissionChecker = permissionChecker;
+        this.permissionEvaluator = permissionEvaluator;
     }
 
     @Override
@@ -60,17 +67,13 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Override
     public void switchAccount(SwitchAccountRequest request, StreamObserver<SwitchAccountResponse> responseObserver) {
-        var caller = Caller.current();
         var sessionName = NameParsing.session("name", request.getName());
         var accountName = NameParsing.account("account", request.getAccount());
-        caller.requireUser(sessionName.getParent());
-        caller.requireUser(accountName.getParent());
-        if (!sessionName.getPersistenceId().equals(caller.sessionId())) {
-            throw Status.PERMISSION_DENIED
-                    .withDescription("only the session of the caller can be changed")
-                    .asRuntimeException();
-        }
-        var result = authentication.switchAccount(caller, accountName.getPersistenceId());
+        permissionChecker.verifySwitchAccountPermission(sessionName, accountName);
+        var result = authentication.switchAccount(
+                sessionName.getParent().getPersistenceId(),
+                sessionName.getPersistenceId(),
+                accountName.getPersistenceId());
         responseObserver.onNext(SwitchAccountResponse.newBuilder()
                 .setSession(AuthMapper.session(result.session(), true))
                 .setAccessToken(result.accessToken().token())
@@ -82,9 +85,13 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Override
     public void changePassword(ChangePasswordRequest request, StreamObserver<ChangePasswordResponse> responseObserver) {
-        var caller = Caller.current();
-        caller.requireUser(NameParsing.user("name", request.getName()));
-        authentication.changePassword(caller, request.getOldPassword(), request.getNewPassword());
+        var user = NameParsing.user("name", request.getName());
+        permissionChecker.verifyChangePasswordPermission(user);
+        authentication.changePassword(
+                user.getPersistenceId(),
+                permissionEvaluator.currentSessionId(),
+                request.getOldPassword(),
+                request.getNewPassword());
         responseObserver.onNext(ChangePasswordResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
