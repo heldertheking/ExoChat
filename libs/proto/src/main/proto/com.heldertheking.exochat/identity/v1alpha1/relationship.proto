@@ -96,7 +96,9 @@ message Relationship {
     (google.api.field_behavior) = IMMUTABLE,
     (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
   ];
-  RelationshipType type = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Set by the server: PENDING_OUTGOING on creation, then changed through
+  // AcceptRelationship, RejectRelationship and BlockRelationship.
+  RelationshipType type = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
