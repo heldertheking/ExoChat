@@ -23,6 +23,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation libs.bouncycastle.bcprov
     implementation libs.nimbus.jose.jwt
+    // rate limiting (ADR-014): bounded in-memory counters
+    implementation libs.caffeine
 
     runtimeOnly libs.mariadb.jdbc
 

@@ -20,3 +20,9 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     database-change-log-table: ec_databasechangelog
     database-change-log-lock-table: ec_databasechangeloglock
+
+# Rate limiting is off in the tests: the end to end tests register and log in many times from one address.
+# The rate limit tests switch it on with their own properties.
+exochat:
+  ratelimit:
+    enabled: false

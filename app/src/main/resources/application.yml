@@ -25,3 +25,24 @@ exochat:
     access-token-ttl: 15m
     refresh-token-idle-ttl: 30d
     refresh-token-max-ttl: 90d
+  # Rate limiting of annotated gRPC methods (ADR-014). Built-in policies: register, login, refresh,
+  # change-password, switch-account, user-update, user-delete and account-create. An entry under "policies"
+  # overrides the fields it sets of the built-in policy of that name; a new name defines a policy that a
+  # @RateLimited("name") annotation can use (then all fields are needed).
+  #   limit              calls allowed per window
+  #   window             length of the window (a Duration: 5m, 1h)
+  #   key                PEER (address), USER (authenticated user) or PEER_AND_USER
+  #   request-key-limit  calls per window for the same key from the request body (email of a login), 0 for none
+  # trusted-proxy-header: leave unset unless a reverse proxy that overwrites the header sits in front of every
+  # request (x-forwarded-for, ...), otherwise clients choose their own counter. Unset: the socket address is used.
+  # fail-open: let calls pass when the counter store fails (true) or reject them (false).
+  ratelimit:
+    enabled: true
+    fail-open: true
+    max-keys: 100000
+    # trusted-proxy-header: x-forwarded-for
+    # policies:
+    #   login:
+    #     limit: 20
+    #     window: 5m
+    #     request-key-limit: 5
