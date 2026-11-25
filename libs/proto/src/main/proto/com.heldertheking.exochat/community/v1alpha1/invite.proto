@@ -7,6 +7,7 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -46,7 +47,7 @@ service InviteService {
   }
 
   // Accepts an invite on behalf of the authenticated account, creating a Member.
-  rpc AcceptInvite(AcceptInviteRequest) returns (Member) {
+  rpc AcceptInvite(AcceptInviteRequest) returns (AcceptInviteResponse) {
     option (google.api.http) = {
       post: "/v1alpha1/{name=servers/*/invites/*}:accept"
       body: "*"
@@ -72,7 +73,14 @@ message Invite {
     (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
   ];
 
+  // Time after which the invite no longer works.
   google.protobuf.Timestamp expire_time = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Alternative to expire_time on creation: the invite expires this long after it is created.
+  google.protobuf.Duration ttl = 6 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
 
   // Maximum number of uses, 0 means unlimited.
   int32 max_uses = 4 [(google.api.field_behavior) = OPTIONAL];
@@ -128,4 +136,9 @@ message AcceptInviteRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "exochat.heldertheking.com/Invite"}
   ];
+}
+
+message AcceptInviteResponse {
+  // The membership created by accepting the invite.
+  Member member = 1;
 }

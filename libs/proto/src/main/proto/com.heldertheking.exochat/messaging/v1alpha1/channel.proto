@@ -23,6 +23,10 @@ option java_package = "com.heldertheking.exochat.messaging.v1alpha1";
 service ChannelService {
   // Lists channels. Without a parent, lists the direct and group channels of the caller.
   // With a server parent, lists that server's channels.
+  // (-- api-linter: core::0132::http-uri-parent=disabled
+  //     aip.dev/not-precedent: direct and group channels have no parent, only server channels do. --)
+  // (-- api-linter: core::0132::method-signature=disabled
+  //     aip.dev/not-precedent: the parent is optional. --)
   rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse) {
     option (google.api.http) = {
       get: "/v1alpha1/channels"
@@ -42,6 +46,10 @@ service ChannelService {
   }
 
   // Creates a channel. Direct channels have no parent, server channels use the server as parent.
+  // (-- api-linter: core::0133::http-uri-parent=disabled
+  //     aip.dev/not-precedent: direct and group channels have no parent, only server channels do. --)
+  // (-- api-linter: core::0133::method-signature=disabled
+  //     aip.dev/not-precedent: parent is optional, so both signatures are offered. --)
   rpc CreateChannel(CreateChannelRequest) returns (Channel) {
     option (google.api.http) = {
       post: "/v1alpha1/channels"
@@ -143,6 +151,8 @@ message Channel {
 
 message ListChannelsRequest {
   // Optional: a server (`servers/{server}`). Empty lists the caller's direct channels.
+  // (-- api-linter: core::0132::request-parent-behavior=disabled
+  //     aip.dev/not-precedent: the parent is optional, see the RPC. --)
   string parent = 1 [
     (google.api.field_behavior) = OPTIONAL,
     (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Channel"}
@@ -168,6 +178,8 @@ message GetChannelRequest {
 
 message CreateChannelRequest {
   // Optional: a server (`servers/{server}`). Empty for direct and group channels.
+  // (-- api-linter: core::0133::request-parent-behavior=disabled
+  //     aip.dev/not-precedent: the parent is optional, see the RPC. --)
   string parent = 1 [
     (google.api.field_behavior) = OPTIONAL,
     (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/Channel"}

@@ -64,6 +64,8 @@ message Account {
     plural: "accounts"
   };
 
+  // (-- api-linter: core::0216::synonyms=disabled
+  //     aip.dev/not-precedent: this is presence, not a lifecycle state, "status" is the common term. --)
   // Presence of an account. Live presence may be kept outside the database and filled in on read.
   enum AccountStatus {
     ACCOUNT_STATUS_UNSPECIFIED = 0;

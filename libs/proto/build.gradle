@@ -46,19 +46,33 @@ tasks.register('bufLint', Exec) {
     commandLine 'buf', 'lint'
 }
 
+// api-linter needs the googleapis imports next to our own protos; buf export puts both in one directory.
+tasks.register('bufExport', Exec) {
+    description = 'Exports the protos and their buf dependencies for api-linter'
+    workingDir = projectDir
+    def out = layout.buildDirectory.dir('buf-export')
+    outputs.dir(out)
+    inputs.files(fileTree('src/main/proto'), 'buf.yaml', 'buf.lock')
+    doFirst {
+        delete out
+        commandLine 'buf', 'export', '.', '-o', out.get().asFile.absolutePath
+    }
+}
+
 tasks.register('apiLinter', Exec) {
     group = 'verification'
-    description = 'Validates Google AIP compliance with api-linter'
+    description = 'Validates Google AIP compliance with api-linter (go install github.com/googleapis/api-linter/v2/cmd/api-linter@latest)'
+    dependsOn 'bufExport'
     workingDir = rootDir
     doFirst {
+        def exported = layout.buildDirectory.dir('buf-export').get().asFile
         def protoRoot = file('src/main/proto')
         def protos = fileTree(protoRoot) { include '**/*.proto' }.files
                 .collect { protoRoot.toPath().relativize(it.toPath()).toString().replace(File.separator, '/') }
                 .sort()
         commandLine(['api-linter',
                      '--config', "${rootDir}/.api-linter.yaml",
-                     '-I', protoRoot.absolutePath,
-                     '-I', "${System.properties['user.home']}/.cache/buf/v3/modules"] + protos)
+                     '-I', exported.absolutePath] + protos)
     }
 }
 

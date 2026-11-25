@@ -15,39 +15,39 @@ option java_package = "com.heldertheking.exochat.messaging.v1alpha1";
 
 // Manages per-channel permission allow/deny overwrites for server channels.
 service ChannelOverwriteService {
-  // Lists overwrites.
+  // Lists channel_overwrites.
   rpc ListChannelOverwrites(ListChannelOverwritesRequest) returns (ListChannelOverwritesResponse) {
     option (google.api.http) = {get: "/v1alpha1/{parent=channels/*}/overwrites"};
     option (google.api.method_signature) = "parent";
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  // Gets a overwrite.
+  // Gets a channel_overwrite.
   rpc GetChannelOverwrite(GetChannelOverwriteRequest) returns (ChannelOverwrite) {
     option (google.api.http) = {get: "/v1alpha1/{name=channels/*/overwrites/*}"};
     option (google.api.method_signature) = "name";
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  // Creates a overwrite.
+  // Creates a channel_overwrite.
   rpc CreateChannelOverwrite(CreateChannelOverwriteRequest) returns (ChannelOverwrite) {
     option (google.api.http) = {
       post: "/v1alpha1/{parent=channels/*}/overwrites"
-      body: "overwrite"
+      body: "channel_overwrite"
     };
-    option (google.api.method_signature) = "parent,overwrite";
+    option (google.api.method_signature) = "parent,channel_overwrite";
   }
 
-  // Updates a overwrite.
+  // Updates a channel_overwrite.
   rpc UpdateChannelOverwrite(UpdateChannelOverwriteRequest) returns (ChannelOverwrite) {
     option (google.api.http) = {
-      patch: "/v1alpha1/{overwrite.name=channels/*/overwrites/*}"
-      body: "overwrite"
+      patch: "/v1alpha1/{channel_overwrite.name=channels/*/overwrites/*}"
+      body: "channel_overwrite"
     };
-    option (google.api.method_signature) = "overwrite,update_mask";
+    option (google.api.method_signature) = "channel_overwrite,update_mask";
   }
 
-  // Deletes a overwrite.
+  // Deletes a channel_overwrite.
   rpc DeleteChannelOverwrite(DeleteChannelOverwriteRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1alpha1/{name=channels/*/overwrites/*}"};
     option (google.api.method_signature) = "name";
@@ -59,8 +59,8 @@ message ChannelOverwrite {
   option (google.api.resource) = {
     type: "exochat.heldertheking.com/ChannelOverwrite"
     pattern: "channels/{channel}/overwrites/{overwrite}"
-    singular: "overwrite"
-    plural: "overwrites"
+    singular: "channelOverwrite"
+    plural: "channelOverwrites"
   };
 
   enum OverwriteTargetType {
@@ -103,7 +103,7 @@ message ListChannelOverwritesRequest {
 }
 
 message ListChannelOverwritesResponse {
-  repeated ChannelOverwrite overwrites = 1;
+  repeated ChannelOverwrite channel_overwrites = 1;
   string next_page_token = 2;
 }
 
@@ -120,14 +120,14 @@ message CreateChannelOverwriteRequest {
     (google.api.resource_reference) = {child_type: "exochat.heldertheking.com/ChannelOverwrite"}
   ];
 
-  ChannelOverwrite overwrite = 2 [(google.api.field_behavior) = REQUIRED];
+  ChannelOverwrite channel_overwrite = 2 [(google.api.field_behavior) = REQUIRED];
 
   // TODO: Think about user-generated IDs (AIP-133)
-  // string overwrite_id = 3 [(google.api.field_behavior) = OPTIONAL];
+  // string channel_overwrite_id = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message UpdateChannelOverwriteRequest {
-  ChannelOverwrite overwrite = 1 [(google.api.field_behavior) = REQUIRED];
+  ChannelOverwrite channel_overwrite = 1 [(google.api.field_behavior) = REQUIRED];
 
   google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
 }

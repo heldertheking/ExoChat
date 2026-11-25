@@ -15,6 +15,8 @@ option java_outer_classname = "UserProto";
 option java_package = "com.heldertheking.exochat.identity.v1alpha1";
 
 // Manages users: the root login identity that owns accounts.
+// (-- api-linter: core::0121::resource-must-support-list=disabled
+//     aip.dev/not-precedent: users are never listed, other users only see accounts. --)
 service UserService {
   // Gets a user.
   rpc GetUser(GetUserRequest) returns (User) {

@@ -6,6 +6,8 @@ option java_multiple_files = true;
 option java_outer_classname = "CommonProto";
 option java_package = "com.heldertheking.exochat.common.v1alpha1";
 
+// (-- api-linter: core::0123::resource-annotation=disabled
+//     aip.dev/not-precedent: Reference points at resources, it is not one itself. --)
 // Used to Reference objects by Resource Name.
 message Reference {
   string name = 1;

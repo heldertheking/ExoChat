@@ -75,11 +75,19 @@ message Message {
   string content = 3 [(google.api.field_behavior) = REQUIRED];
 
   // Resource name of the message this one replies to.
+  // (-- api-linter: core::0140::prepositions=disabled
+  //     aip.dev/not-precedent: reply_to is the established name for this relation. --)
+  // (-- api-linter: core::0121::no-mutable-cycles=disabled
+  //     aip.dev/not-precedent: the reference is immutable, so replies cannot form a cycle. --)
   string reply_to = 4 [
     (google.api.field_behavior) = OPTIONAL,
     (google.api.field_behavior) = IMMUTABLE,
     (google.api.resource_reference) = {type: "exochat.heldertheking.com/Message"}
   ];
+
+  // Position of the message in its channel, assigned by the server. Strictly increasing per channel, used for
+  // ordering, history cursors and read positions.
+  int64 sequence = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
   google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
