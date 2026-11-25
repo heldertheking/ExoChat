@@ -12,8 +12,8 @@ import com.heldertheking.quela.SingleDBFieldProperty;
 /// The last column in an OrderByCondition must always be a discriminator field to ensure a stable sort.
 /// The discriminator field must be unique to ensure a stable sort.
 ///
-/// @param fieldDefinitions contains the field definitions that are used in the order by condition. The order of the
-/// fields corresponds to the order of fields is the same as in the original orderBy string and is the same as in
+/// @param fieldDefinitions contains the field definitions that are used in the order by condition. The order of
+/// the fields corresponds to the order of fields is the same as in the original orderBy string and is the same as in
 /// sortFields.
 /// @param sortFields       contains the sort fields that are used in the order by condition of a jooq query
 ///                         The order of the fields corresponds to the ones in fieldDefinitions.

@@ -15,6 +15,10 @@ ExoChat issues its own credentials instead of delegating to an external identity
 - **Unauthenticated calls:** only `RegisterUser`, `AuthenticateUser` and `RefreshSession`. Failures on login are `UNAUTHENTICATED` with one message for unknown email and wrong password. Rate limits per email and per address on all three.
 - **Transport:** `authorization: Bearer <access_token>` metadata on gRPC, the same on the gateway. WebSocket connections authenticate once with an access token and are closed when it expires unless refreshed.
 
+## Configuration
+
+Properties under `exochat.auth` (`AuthProperties`): `issuer`, `access-token-ttl` (15m), `refresh-token-idle-ttl` (30d), `refresh-token-max-ttl` (90d), `signing-key-id`, `signing-private-key` (PKCS#8 PEM) and `signing-public-key` (X.509 PEM), normally set through `EXOCHAT_AUTH_*` environment variables. Without a private key an ephemeral key is generated at startup and a warning is logged: fine for development, all tokens die with the process.
+
 ## Consequences
 
 - No dependency on an external provider and full control of the account model (user with personas), at the price of owning password storage, rate limiting, key management and the security review.

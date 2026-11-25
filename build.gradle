@@ -44,11 +44,12 @@ spotless {
     }
 }
 
-// palantir-java-format does not understand `///` Markdown doc comments: when such a line is longer than the
-// line width it wraps it without the `///` prefix and the file no longer compiles. Fail early instead.
+// palantir-java-format does not understand `///` Markdown doc comments: when such a line is too long it wraps it
+// without the `///` prefix and the file no longer compiles. Plain lines break above 120 characters, lines with a
+// javadoc tag (`/// @param`, `/// @throws`) already above 116. Fail early instead.
 tasks.register('checkDocCommentWidth') {
     group = 'verification'
-    description = 'Fails if a /// doc comment line is longer than 120 characters (see comment in build.gradle)'
+    description = 'Fails if a /// doc comment line is too long for palantir-java-format (see comment in build.gradle)'
     def sources = fileTree(rootDir) {
         include '**/src/**/*.java'
         exclude '**/build/**', '**/.gradle/**', '.claude/**'
@@ -58,13 +59,14 @@ tasks.register('checkDocCommentWidth') {
         def tooLong = []
         sources.each { f ->
             f.readLines().eachWithIndex { line, i ->
-                if (line.trim().startsWith('///') && line.length() > 120) {
+                def trimmed = line.trim()
+                if (trimmed.startsWith('///') && line.length() > (trimmed.startsWith('/// @') ? 116 : 120)) {
                     tooLong << "${rootDir.toPath().relativize(f.toPath())}:${i + 1}"
                 }
             }
         }
         if (tooLong) {
-            throw new GradleException('/// comment lines longer than 120 characters break palantir-java-format, wrap them by hand: ' + tooLong.join(', '))
+            throw new GradleException('/// comment lines too long for palantir-java-format (120, tag lines 116), wrap them by hand: ' + tooLong.join(', '))
         }
     }
 }

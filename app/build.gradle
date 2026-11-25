@@ -18,6 +18,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-liquibase'
     implementation libs.spring.grpc.server.starter
+    // authentication (ADR-012): Argon2id (needs Bouncy Castle) and ES256 JWTs
+    implementation 'org.springframework.security:spring-security-crypto'
+    implementation libs.bouncycastle.bcprov
+    implementation libs.nimbus.jose.jwt
 
     runtimeOnly libs.mariadb.jdbc
 
