@@ -7,7 +7,7 @@
 | User | Root login identity (`users/{user}`); owns several Accounts |
 | Account | Public persona (`users/{user}/accounts/{account}`): username, display name, avatar, status |
 | Relationship | Friend/pending/blocked link between two Accounts |
-| Session | Device/session lifecycle, refresh token family |
+| Session | One per logged in device (`users/{user}/sessions/{session}`): refresh token family, active account, device label (ADR-012) |
 | Server | Community (`servers/{server}`): name, icon, owner account |
 | Member | Account-server relationship (`servers/{server}/members/{member}`), nickname, role assignments |
 | Role | Server-defined permission bundle (bitmask) |

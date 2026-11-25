@@ -27,3 +27,4 @@ Context, the decision, and the consequences, in a few short paragraphs.
 | [009](009-mariadb-and-liquibase-for-the-initial-implementation.md) | MariaDB and Liquibase for the initial implementation | Accepted |
 | [010](010-shared-list-query-language-quela.md) | Shared list-query language (quela) | Accepted |
 | [011](011-uuidv7-primary-keys.md) | UUIDv7 primary keys | Accepted |
+| [012](012-own-jwt-authentication.md) | Own JWT authentication with rotating refresh tokens | Proposed |

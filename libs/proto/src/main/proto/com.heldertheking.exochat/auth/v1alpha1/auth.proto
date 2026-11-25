@@ -1,0 +1,184 @@
+syntax = "proto3";
+
+package com.heldertheking.exochat.auth.v1alpha1;
+
+import "com.heldertheking.exochat/identity/v1alpha1/account.proto";
+import "com.heldertheking.exochat/identity/v1alpha1/session.proto";
+import "com.heldertheking.exochat/identity/v1alpha1/user.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "AuthProto";
+option java_package = "com.heldertheking.exochat.auth.v1alpha1";
+
+// Issues and renews credentials. RegisterUser, AuthenticateUser and RefreshSession are the only calls that need no
+// access token, every other call of the API does. Access tokens are short-lived JWTs, refresh tokens are opaque,
+// single use and rotate on every refresh (ADR-012).
+service AuthService {
+  // Creates a user together with its first account and logs the device in. Fails with ALREADY_EXISTS if the email,
+  // phone number or username is taken.
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/users:registerUser"
+      body: "*"
+    };
+  }
+
+  // Logs a device in with email and password and creates a session. Fails with UNAUTHENTICATED for an unknown email
+  // and a wrong password alike, so callers cannot probe which emails exist. Rate limited per email and address.
+  rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/users:authenticateUser"
+      body: "*"
+    };
+  }
+
+  // Exchanges a refresh token for a new access token and a new refresh token. The old refresh token is spent. Using
+  // a spent refresh token again is treated as theft and revokes the whole session.
+  rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/sessions:refreshSession"
+      body: "*"
+    };
+  }
+
+  // Makes another account of the user the active one in a session and returns an access token for it.
+  rpc SwitchAccount(SwitchAccountRequest) returns (SwitchAccountResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/{name=users/*/sessions/*}:switchAccount"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,account";
+  }
+
+  // Changes the password of a user and revokes all of its sessions except the current one.
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/{name=users/*}:changePassword"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,old_password,new_password";
+  }
+}
+
+// The credentials of a session. Clients keep the refresh token in secure storage and send the access token as
+// `authorization: Bearer <access_token>`.
+message AuthTokens {
+  // Signed JWT. Claims: `sub` is the user name (users/{user}), `sid` the session id, `acc` the active account name,
+  // `exp` the expiry. Verify it with the public keys of the server, never decode it for trust decisions on the client.
+  string access_token = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  google.protobuf.Timestamp access_token_expire_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Opaque, single use. The server stores only a hash of it.
+  string refresh_token = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  google.protobuf.Timestamp refresh_token_expire_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message RegisterUserRequest {
+  // Login email. Must be unique.
+  string email = 1 [(google.api.field_behavior) = REQUIRED];
+
+  string phone_number = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // At least 8 characters, at most 128, no composition rules. Rejected if it is known from data breaches.
+  string password = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+
+  // Handle of the first account. Must be unique.
+  string username = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // Display name of the first account, defaults to the username.
+  string display_name = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Label for this device, shown in the session list.
+  string device_label = 6 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message RegisterUserResponse {
+  com.heldertheking.exochat.identity.v1alpha1.User user = 1;
+  com.heldertheking.exochat.identity.v1alpha1.Account account = 2;
+  com.heldertheking.exochat.identity.v1alpha1.Session session = 3;
+  AuthTokens tokens = 4;
+}
+
+message AuthenticateUserRequest {
+  string email = 1 [(google.api.field_behavior) = REQUIRED];
+
+  string password = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+
+  // Label for this device, shown in the session list.
+  string device_label = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // TODO: second factor (TOTP / passkey).
+}
+
+message AuthenticateUserResponse {
+  com.heldertheking.exochat.identity.v1alpha1.User user = 1;
+  com.heldertheking.exochat.identity.v1alpha1.Session session = 2;
+  AuthTokens tokens = 3;
+}
+
+message RefreshSessionRequest {
+  string refresh_token = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+}
+
+message RefreshSessionResponse {
+  com.heldertheking.exochat.identity.v1alpha1.Session session = 1;
+  AuthTokens tokens = 2;
+}
+
+message SwitchAccountRequest {
+  // The session to change. Must be the session of the caller.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Session"}
+  ];
+
+  // Resource name of the account to activate. Must belong to the user of the session.
+  string account = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/Account"}
+  ];
+}
+
+message SwitchAccountResponse {
+  com.heldertheking.exochat.identity.v1alpha1.Session session = 1;
+
+  // New access token with the new `acc` claim. The refresh token stays valid and is not part of the response.
+  string access_token = 2;
+
+  google.protobuf.Timestamp access_token_expire_time = 3;
+}
+
+message ChangePasswordRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "exochat.heldertheking.com/User"}
+  ];
+
+  string old_password = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+
+  string new_password = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+}
+
+message ChangePasswordResponse {}

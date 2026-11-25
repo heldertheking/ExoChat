@@ -9,11 +9,11 @@ Protocol Buffers contracts and generated gRPC/Java stubs. Protobuf is the canoni
 | Domain | Status |
 |---|---|
 | `health/v1alpha1` | `HealthService.Check` (implemented in `app`) |
-| `identity/v1alpha1` | `User`, `Account`, `Relationship` (contract only) |
+| `identity/v1alpha1` | `User`, `Account`, `Relationship`, `Session` (contract only) |
 | `community/v1alpha1` | `Server`, `Member`, `Role`, `Invite` (contract only) |
 | `messaging/v1alpha1` | `Channel` (two names), `ChannelParticipant`, `ChannelOverwrite`, `Message` (contract only) |
 | `common/v1alpha1` | `Reference` |
-| `auth/v1alpha1` | placeholder |
+| `auth/v1alpha1` | `AuthService`: register, authenticate, refresh, switch account, change password (contract only, ADR-012) |
 
 ## Conventions
 

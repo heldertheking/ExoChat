@@ -14,6 +14,7 @@ All ids are UUIDv7 (ADR-011); `-` in the last segment is the wildcard (a wildcar
 |---|---|---|
 | `identity` | `UserName` | `users/{user}` |
 | `identity` | `AccountName` | `users/{user}/accounts/{account}` |
+| `identity` | `SessionName` | `users/{user}/sessions/{session}` |
 | `identity` | `RelationshipName` | `users/{user}/accounts/{account}/relationships/{relationship}` |
 | `community` | `ServerName` | `servers/{server}` |
 | `community` | `MemberName` | `servers/{server}/members/{member}` |
