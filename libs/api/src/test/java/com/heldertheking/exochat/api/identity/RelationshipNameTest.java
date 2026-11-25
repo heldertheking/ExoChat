@@ -1,14 +1,15 @@
 package com.heldertheking.exochat.api.identity;
 
-import com.heldertheking.exochat.api.id.UuidV7;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.heldertheking.exochat.api.id.UuidV7;
 
 class RelationshipNameTest {
     private static final UUID U0 = UUID.fromString("0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01");
@@ -36,8 +37,10 @@ class RelationshipNameTest {
 
     @Test
     void fromName_should_roundTrip() {
-        assertThat(RelationshipName.fromName("users/" + U0 + "/accounts/" + U1 + "/relationships/" + U2)).isEqualTo(RelationshipName.of(AccountName.of(UserName.of(U0), U1), U2));
-        assertThat(RelationshipName.fromName("users/" + U0 + "/accounts/" + U1 + "/relationships/-")).isEqualTo(RelationshipName.wildcard(AccountName.of(UserName.of(U0), U1)));
+        assertThat(RelationshipName.fromName("users/" + U0 + "/accounts/" + U1 + "/relationships/" + U2))
+                .isEqualTo(RelationshipName.of(AccountName.of(UserName.of(U0), U1), U2));
+        assertThat(RelationshipName.fromName("users/" + U0 + "/accounts/" + U1 + "/relationships/-"))
+                .isEqualTo(RelationshipName.wildcard(AccountName.of(UserName.of(U0), U1)));
     }
 
     @Test
@@ -50,12 +53,18 @@ class RelationshipNameTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "", "relationships", "relationships/", "relationships/alice", "relationships/1",
-            "other/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01",
-            "relationships/F47AC10B-58CC-4372-A567-0E02B2C3D479", "relationships/f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            "/relationships/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01"
-    })
+    @ValueSource(
+            strings = {
+                "",
+                "relationships",
+                "relationships/",
+                "relationships/alice",
+                "relationships/1",
+                "other/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01",
+                "relationships/F47AC10B-58CC-4372-A567-0E02B2C3D479",
+                "relationships/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                "/relationships/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01"
+            })
     void fromName_should_rejectOtherStrings(String name) {
         assertThatThrownBy(() -> RelationshipName.fromName(name)).isInstanceOf(IllegalArgumentException.class);
     }

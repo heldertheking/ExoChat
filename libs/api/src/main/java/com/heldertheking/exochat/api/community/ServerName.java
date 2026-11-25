@@ -1,10 +1,11 @@
 package com.heldertheking.exochat.api.community;
 
-import com.google.api.pathtemplate.PathTemplate;
-import com.heldertheking.exochat.api.id.AbstractUuidResourceName;
+import java.util.UUID;
+
 import org.jspecify.annotations.Nullable;
 
-import java.util.UUID;
+import com.google.api.pathtemplate.PathTemplate;
+import com.heldertheking.exochat.api.id.AbstractUuidResourceName;
 
 /// Resource name of a server (community): `servers/{server}`, where `{server}` is the lowercase canonical form of a
 /// version 7 UUID. `servers/-` is the wildcard name matching all of them.

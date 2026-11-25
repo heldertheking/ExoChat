@@ -1,11 +1,11 @@
 package com.heldertheking.quela.pagination;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+
+import org.jspecify.annotations.Nullable;
 
 /// A [Spliterator] that lazily walks over paginated data, fetching the next page through a [PageFetcher]
 /// only when the previous one has been fully consumed.

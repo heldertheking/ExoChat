@@ -4,7 +4,6 @@ import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jspecify.annotations.Nullable;
 
-
 public interface Paginator {
     /// Parses the pagination request and returns a page token.
     ///
@@ -12,9 +11,8 @@ public interface Paginator {
     /// @return
     PageCursor parse(PaginationRequest request);
 
-    /// Returns the next page token.
-    /// Implementations need to be awareof the last record of the current page might be null. If the page did not reach
-    /// the expected page size.
+    /// Returns the next page token. Implementations need to be aware of the last record of the current page might be
+    /// null. If the page did not reach the expected page size.
     ///
     /// @param token
     /// @param lastRecord

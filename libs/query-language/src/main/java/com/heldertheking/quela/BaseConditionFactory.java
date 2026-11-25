@@ -1,9 +1,10 @@
 package com.heldertheking.quela;
 
-import com.heldertheking.quela.search.UnsupportedOperatorException;
+import java.util.Collection;
+
 import org.jooq.Condition;
 
-import java.util.Collection;
+import com.heldertheking.quela.search.UnsupportedOperatorException;
 
 public abstract class BaseConditionFactory<T> implements ConditionFactory<T> {
     @Override

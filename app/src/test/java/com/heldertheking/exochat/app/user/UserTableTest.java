@@ -3,10 +3,10 @@ package com.heldertheking.exochat.app.user;
 import static com.heldertheking.exochat.db.schema.Tables.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.heldertheking.exochat.api.id.UuidV7;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
+
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,24 +19,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 
+import com.heldertheking.exochat.api.id.UuidV7;
+
 /**
  * Pattern for DB tests: a narrow Spring context (no gRPC server), Liquibase migrating the
  * {@code exochat_test} database, and a prepared dataset loaded before each test method.
  */
 @SpringBootTest(classes = UserTableTest.TestConfig.class)
-@Sql(scripts = "classpath:/test-data/user/test-dataset.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:/test-data/user/test-dataset.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class UserTableTest {
 
     @SpringBootConfiguration
     @Import({
-            DataSourceAutoConfiguration.class,
-            DataSourceTransactionManagerAutoConfiguration.class,
-            LiquibaseAutoConfiguration.class,
-            JooqAutoConfiguration.class,
+        DataSourceAutoConfiguration.class,
+        DataSourceTransactionManagerAutoConfiguration.class,
+        LiquibaseAutoConfiguration.class,
+        JooqAutoConfiguration.class,
     })
-    static class TestConfig {
-    }
+    static class TestConfig {}
 
     @Autowired
     private DSLContext dsl;
@@ -58,7 +58,10 @@ class UserTableTest {
         Collections.shuffle(shuffled);
         dsl.deleteFrom(USER).execute();
         for (var id : shuffled) {
-            dsl.insertInto(USER).set(USER.ID, id).set(USER.DISPLAY_NAME, id.toString()).execute();
+            dsl.insertInto(USER)
+                    .set(USER.ID, id)
+                    .set(USER.DISPLAY_NAME, id.toString())
+                    .execute();
         }
 
         var ids = dsl.select(USER.ID).from(USER).orderBy(USER.ID).fetch(USER.ID);

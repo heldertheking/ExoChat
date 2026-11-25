@@ -4,7 +4,9 @@ import org.jooq.Field;
 
 public interface FieldResolverBuilder {
 
-    <T> FieldResolverBuilder addField(QueryFieldParser<T> propertyParser, String path, ConditionFactory<T> conditionFactory);
+    <T> FieldResolverBuilder addField(
+            QueryFieldParser<T> propertyParser, String path, ConditionFactory<T> conditionFactory);
+
     <T> FieldResolverBuilder addField(SingleDBFieldProperty<T, ?> type, String path, Field<T> field, boolean sortable);
 
     default <T> FieldResolverBuilder addField(SingleDBFieldProperty<T, ?> type, String path, Field<T> field) {

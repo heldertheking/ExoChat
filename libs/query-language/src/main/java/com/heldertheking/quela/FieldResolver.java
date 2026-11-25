@@ -6,7 +6,8 @@ import org.jooq.Field;
 ///
 /// It serves as a mapping layer between a frontend data model and a persistence model
 public interface FieldResolver {
-    /// given the full path to the property, an implementation should return the table field that corresponds to the field
+    /// given the full path to the property, an implementation should return the table field that corresponds to the
+    /// field
     ///
     /// @param path fully qualified path like this.availability.shift_date
     /// @return a table field coming from generated jooq code
@@ -18,13 +19,12 @@ public interface FieldResolver {
     /// @param propertyParser    the propertyParser of the field
     /// @param conditionFactory  build a condition based on a value
     /// @param <T>
-    record FieldDefinition<T>(QueryFieldParser<T> propertyParser, ConditionFactory<T> conditionFactory) {
-    }
+    record FieldDefinition<T>(QueryFieldParser<T> propertyParser, ConditionFactory<T> conditionFactory) {}
 
     /// A field definition contains the field, the propertyParser of the field and if the field is sortable
     /// @param propertyParser    the propertyParser of the field
     /// @param conditionFactory  build a condition based on a value
     /// @param <T>
-    record SortableFieldDefinition<T>(QueryFieldParser<T> propertyParser, ConditionFactory<T> conditionFactory, Field<T> field) {
-    }
+    record SortableFieldDefinition<T>(
+            QueryFieldParser<T> propertyParser, ConditionFactory<T> conditionFactory, Field<T> field) {}
 }

@@ -1,8 +1,8 @@
 package com.heldertheking.resourcename;
 
-import com.google.api.pathtemplate.PathTemplate;
-
 import java.util.Objects;
+
+import com.google.api.pathtemplate.PathTemplate;
 
 public abstract class AbstractChildResourceName<P extends ResourceName<?>> implements ChildResourceName<P> {
     private final P parent;

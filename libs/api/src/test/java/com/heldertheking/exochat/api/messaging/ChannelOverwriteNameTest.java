@@ -1,14 +1,15 @@
 package com.heldertheking.exochat.api.messaging;
 
-import com.heldertheking.exochat.api.id.UuidV7;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.heldertheking.exochat.api.id.UuidV7;
 
 class ChannelOverwriteNameTest {
     private static final UUID U0 = UUID.fromString("0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01");
@@ -35,8 +36,10 @@ class ChannelOverwriteNameTest {
 
     @Test
     void fromName_should_roundTrip() {
-        assertThat(ChannelOverwriteName.fromName("channels/" + U0 + "/overwrites/" + U1)).isEqualTo(ChannelOverwriteName.of(ChannelName.of(U0), U1));
-        assertThat(ChannelOverwriteName.fromName("channels/" + U0 + "/overwrites/-")).isEqualTo(ChannelOverwriteName.wildcard(ChannelName.of(U0)));
+        assertThat(ChannelOverwriteName.fromName("channels/" + U0 + "/overwrites/" + U1))
+                .isEqualTo(ChannelOverwriteName.of(ChannelName.of(U0), U1));
+        assertThat(ChannelOverwriteName.fromName("channels/" + U0 + "/overwrites/-"))
+                .isEqualTo(ChannelOverwriteName.wildcard(ChannelName.of(U0)));
     }
 
     @Test
@@ -49,12 +52,18 @@ class ChannelOverwriteNameTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "", "overwrites", "overwrites/", "overwrites/alice", "overwrites/1",
-            "other/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01",
-            "overwrites/F47AC10B-58CC-4372-A567-0E02B2C3D479", "overwrites/f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            "/overwrites/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01"
-    })
+    @ValueSource(
+            strings = {
+                "",
+                "overwrites",
+                "overwrites/",
+                "overwrites/alice",
+                "overwrites/1",
+                "other/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01",
+                "overwrites/F47AC10B-58CC-4372-A567-0E02B2C3D479",
+                "overwrites/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                "/overwrites/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01"
+            })
     void fromName_should_rejectOtherStrings(String name) {
         assertThatThrownBy(() -> ChannelOverwriteName.fromName(name)).isInstanceOf(IllegalArgumentException.class);
     }

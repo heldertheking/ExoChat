@@ -1,10 +1,11 @@
 package com.heldertheking.exochat.api.community;
 
-import com.google.api.pathtemplate.PathTemplate;
-import com.heldertheking.exochat.api.id.AbstractUuidSubResourceName;
+import java.util.UUID;
+
 import org.jspecify.annotations.Nullable;
 
-import java.util.UUID;
+import com.google.api.pathtemplate.PathTemplate;
+import com.heldertheking.exochat.api.id.AbstractUuidSubResourceName;
 
 /// Resource name of a role of a server (RBAC):
 /// `servers/{server}/roles/{role}`.

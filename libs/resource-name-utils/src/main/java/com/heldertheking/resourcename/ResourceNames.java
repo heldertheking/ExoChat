@@ -1,14 +1,15 @@
 package com.heldertheking.resourcename;
 
-import com.google.api.pathtemplate.ValidationException;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
+import com.google.api.pathtemplate.ValidationException;
 
 /// Parses a resource name string into one of several resource name types, instead of guessing the type from the
 /// string (for example with `contains("/employees/")`).
@@ -32,8 +33,7 @@ import java.util.function.Function;
 /// `employees/-` parse as well; use [ResourceName#isWildcard()] in a mapping if they must be rejected.
 public final class ResourceNames {
 
-    private ResourceNames() {
-    }
+    private ResourceNames() {}
 
     /// Tries resource name types in order. A branch without a mapping returns the parsed name.
     public static Matcher<Name> match(String name) {
@@ -63,10 +63,10 @@ public final class ResourceNames {
             return when(parser, Function.identity());
         }
 
-        /// Tries to parse the name. If that succeeds, and no earlier branch matched, `then` maps the parsed
-        /// name to the result. Only an [IllegalArgumentException] (for example a [ValidationException] or a
-        /// [NumberFormatException]) of the parser counts as "does not parse"; an exception of the mapping, or any
-        /// other exception of the parser, propagates.
+        /// Tries to parse the name. If that succeeds, and no earlier branch matched, `then` maps the
+        /// parsed name to the result. Only an [IllegalArgumentException] (for example a
+        /// [ValidationException] or a [NumberFormatException]) of the parser counts as "does not
+        /// parse"; an exception of the mapping, or any other exception of the parser, propagates.
         public <N> Matcher<R> when(Function<String, N> parser, Function<? super N, ? extends R> then) {
             if (matched) {
                 return this;
@@ -91,7 +91,8 @@ public final class ResourceNames {
 
         /// The result of the first matching branch.
         ///
-        /// @throws ValidationException if no branch matched; the failures of all branches are suppressed exceptions
+        /// @throws ValidationException if no branch matched; the failures of all branches are
+        ///         suppressed exceptions
         public R orElseThrow() {
             if (matched) {
                 return Objects.requireNonNull(result, "the mapping of the matching branch returned null");

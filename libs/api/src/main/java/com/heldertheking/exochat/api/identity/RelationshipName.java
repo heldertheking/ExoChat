@@ -1,16 +1,18 @@
 package com.heldertheking.exochat.api.identity;
 
-import com.google.api.pathtemplate.PathTemplate;
-import com.heldertheking.exochat.api.id.AbstractUuidSubResourceName;
+import java.util.UUID;
+
 import org.jspecify.annotations.Nullable;
 
-import java.util.UUID;
+import com.google.api.pathtemplate.PathTemplate;
+import com.heldertheking.exochat.api.id.AbstractUuidSubResourceName;
 
 /// Resource name of a relationship of an account (friend, blocked account, pending request):
 /// `users/{user}/accounts/{account}/relationships/{relationship}`.
 /// `.../relationships/-` is the wildcard name; a wildcard parent requires the wildcard here.
 public final class RelationshipName extends AbstractUuidSubResourceName<AccountName, UUID> {
-    private static final PathTemplate TEMPLATE = PathTemplate.create("users/{user}/accounts/{account}/relationships/{relationship}");
+    private static final PathTemplate TEMPLATE =
+            PathTemplate.create("users/{user}/accounts/{account}/relationships/{relationship}");
     private static final String VARIABLE = "relationship";
 
     private RelationshipName(AccountName parent, @Nullable UUID id) {
@@ -29,7 +31,8 @@ public final class RelationshipName extends AbstractUuidSubResourceName<AccountN
         return new RelationshipName(parent, null);
     }
 
-    /// Parses a name of the form `users/{user}/accounts/{account}/relationships/{uuidv7}`; `-` is allowed for the last id.
+    /// Parses a name of the form `users/{user}/accounts/{account}/relationships/{uuidv7}`; `-` is allowed for the last
+    /// id.
     ///
     /// @throws com.google.api.pathtemplate.ValidationException (an [IllegalArgumentException]) if the string is not
     ///         a valid name

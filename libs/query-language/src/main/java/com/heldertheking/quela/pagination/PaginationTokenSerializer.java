@@ -30,7 +30,5 @@ public interface PaginationTokenSerializer {
     /// @param values   list of values of ordered fields for the last value returned in a page.
     ///                 Note that some values may be null and [#serialize(Token)] and [#deserialize(String)]
     ///                 must properly serialize/deserialize null values.
-    record Token(long checksum, List<String> values) {
-
-    }
+    record Token(long checksum, List<String> values) {}
 }

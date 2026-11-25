@@ -1,14 +1,15 @@
 package com.heldertheking.quela.orderby;
 
-import com.heldertheking.quela.*;
-import com.heldertheking.quela.FieldResolver.SortableFieldDefinition;
-import com.google.common.collect.ImmutableMap;
+import java.util.Objects;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.jooq.Field;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
+import com.google.common.collect.ImmutableMap;
+import com.heldertheking.quela.*;
+import com.heldertheking.quela.FieldResolver.SortableFieldDefinition;
 
 public final class AntlrOrderByParser implements OrderByParser {
     private final FieldResolver fieldResolver;
@@ -48,8 +49,8 @@ public final class AntlrOrderByParser implements OrderByParser {
     public static class Builder implements BuilderStepDiscriminator {
         private final ImmutableMap.Builder<String, Field<?>> fields = ImmutableMap.builder();
         private @Nullable SortableFieldDefinition<?> discriminator;
-        @Nullable
-        private FieldResolver fieldResolver;
+
+        @Nullable private FieldResolver fieldResolver;
 
         /// Sets the discriminator field. The discriminator field is used to ensure a stable sort.
         /// If the discriminator field is unique, the sort is guaranteed to be stable.
@@ -59,7 +60,10 @@ public final class AntlrOrderByParser implements OrderByParser {
         /// @param discriminator field to use as discriminator
         @Override
         public <T> Builder withDiscriminator(SingleDBFieldProperty<T, ?> queryPropertyParser, Field<T> discriminator) {
-            this.discriminator = new FieldResolver.SortableFieldDefinition<>(queryPropertyParser.getQueryPropertyParser(), queryPropertyParser.conditionFactoryForField(discriminator), discriminator);
+            this.discriminator = new FieldResolver.SortableFieldDefinition<>(
+                    queryPropertyParser.getQueryPropertyParser(),
+                    queryPropertyParser.conditionFactoryForField(discriminator),
+                    discriminator);
             return this;
         }
 

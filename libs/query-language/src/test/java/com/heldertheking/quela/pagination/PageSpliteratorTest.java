@@ -1,12 +1,12 @@
 package com.heldertheking.quela.pagination;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class PageSpliteratorTest {
 
@@ -53,7 +53,9 @@ class PageSpliteratorTest {
             case 6 -> Optional.of(List.of(12, 14));
             default -> Optional.empty();
         });
-        assertThat(StreamSupport.stream(spliterator, false).filter(i -> i % 2 == 0).limit(2))
+        assertThat(StreamSupport.stream(spliterator, false)
+                        .filter(i -> i % 2 == 0)
+                        .limit(2))
                 .containsExactly(12, 14);
     }
 }

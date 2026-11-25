@@ -1,15 +1,16 @@
 package com.heldertheking.resourcename;
 
-import com.heldertheking.resourcename.ResourceNameTest.TestPetName;
-import com.heldertheking.resourcename.ResourceNameTest.TestPoolName;
-import com.google.api.pathtemplate.PathTemplate;
-import com.google.api.pathtemplate.ValidationException;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.function.Function;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
+
+import com.google.api.pathtemplate.PathTemplate;
+import com.google.api.pathtemplate.ValidationException;
+import com.heldertheking.resourcename.ResourceNameTest.TestPetName;
+import com.heldertheking.resourcename.ResourceNameTest.TestPoolName;
 
 class ResourceNamesTest {
 
@@ -103,11 +104,10 @@ class ResourceNamesTest {
     void exception_in_a_mapping_is_not_swallowed() {
         var matcher = ResourceNames.match("pools/1", Long.class);
 
-        assertThatThrownBy(() -> matcher
-                .when(ResourceNamesTest::parsePool, _ -> {
-                    throw new IllegalStateException("bug in mapping");
-                })
-                .when(ResourceNamesTest::parsePool, TestPoolName::getPersistenceId))
+        assertThatThrownBy(() -> matcher.when(ResourceNamesTest::parsePool, _ -> {
+                            throw new IllegalStateException("bug in mapping");
+                        })
+                        .when(ResourceNamesTest::parsePool, TestPoolName::getPersistenceId))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("bug in mapping");
     }
@@ -117,8 +117,9 @@ class ResourceNamesTest {
         var matcher = ResourceNames.match("pools/1");
 
         assertThatThrownBy(() -> matcher.when(_ -> {
-            throw new UnsupportedOperationException("not a parse failure");
-        })).isInstanceOf(UnsupportedOperationException.class);
+                    throw new UnsupportedOperationException("not a parse failure");
+                }))
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

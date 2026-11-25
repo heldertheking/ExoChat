@@ -1,16 +1,17 @@
 package com.heldertheking.exochat.api.id;
 
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+
+import org.jspecify.annotations.Nullable;
+
 import com.google.api.pathtemplate.PathTemplate;
 import com.google.api.pathtemplate.TemplatedResourceName;
 import com.google.api.pathtemplate.ValidationException;
 import com.google.common.collect.ImmutableMap;
 import com.heldertheking.resourcename.ResourceName;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
 
 /// Base class for top-level resource names whose id is a version 7 UUID (see [UuidV7]), like `users/{user}`.
 /// A missing id is the wildcard (`users/-`).
@@ -63,8 +64,8 @@ public abstract class AbstractUuidResourceName implements ResourceName<UUID> {
 
     @Override
     public UUID getPersistenceId() {
-        return id.orElseThrow(() -> new IllegalStateException(
-                "can not get persistence id on wildcard name %s".formatted(this)));
+        return id.orElseThrow(
+                () -> new IllegalStateException("can not get persistence id on wildcard name %s".formatted(this)));
     }
 
     @Override

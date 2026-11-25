@@ -1,20 +1,22 @@
 package com.heldertheking.resourcename;
 
+import java.util.Objects;
+import java.util.Optional;
+
+import org.jspecify.annotations.Nullable;
+
 import com.google.api.pathtemplate.PathTemplate;
 import com.google.api.pathtemplate.TemplatedResourceName;
 import com.google.api.pathtemplate.ValidationException;
 import com.google.common.collect.ImmutableMap;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
-import java.util.Optional;
 
 /// AbstractSubResourceName can be used to more easily implement the [SubResourceName] interface on sub resources.
 ///
 /// @param <P>   parent propertyParser
 /// @param <PID> parent id propertyParser
 /// @param <ID>  this id propertyParser
-public abstract class AbstractSubResourceName<P extends ResourceName<PID>, PID, ID> implements SubResourceName<P, PID, ID> {
+public abstract class AbstractSubResourceName<P extends ResourceName<PID>, PID, ID>
+        implements SubResourceName<P, PID, ID> {
     private final Optional<ID> id;
     private final P parent;
 
@@ -30,7 +32,8 @@ public abstract class AbstractSubResourceName<P extends ResourceName<PID>, PID, 
     protected static @Nullable Long extractLong(TemplatedResourceName name, String variableName) {
         var v = name.get(variableName);
         if (v == null) {
-            throw new ValidationException("variable %s not found in %s", variableName, name.template().toRawString());
+            throw new ValidationException(
+                    "variable %s not found in %s", variableName, name.template().toRawString());
         }
         if (MATCH_ALL.equals(v)) {
             return null;
@@ -38,16 +41,17 @@ public abstract class AbstractSubResourceName<P extends ResourceName<PID>, PID, 
         try {
             return Long.parseLong(v);
         } catch (NumberFormatException _) {
-            throw new ValidationException("could not extract '%s' from template '%s' as integer number", variableName, name
-                    .template()
-                    .toRawString());
+            throw new ValidationException(
+                    "could not extract '%s' from template '%s' as integer number",
+                    variableName, name.template().toRawString());
         }
     }
 
     protected static @Nullable String extractString(TemplatedResourceName name, String variableName) {
         var v = name.get(variableName);
         if (v == null) {
-            throw new ValidationException("variable %s not found in %s", variableName, name.template().toRawString());
+            throw new ValidationException(
+                    "variable %s not found in %s", variableName, name.template().toRawString());
         }
         if (MATCH_ALL.equals(v)) {
             return null;

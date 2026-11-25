@@ -1,11 +1,11 @@
 package com.heldertheking.quela;
 
-import org.jooq.Condition;
-import org.jooq.Field;
-
 import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+
+import org.jooq.Condition;
+import org.jooq.Field;
 
 /// FieldType defines the types of fields that can be used in a query. Both the [SearchParser]
 /// and [OrderByParser] use this interface to determine how to parse and compare
@@ -147,7 +147,9 @@ public sealed interface QueryFieldParser<T> {
             return () -> new StringQueryFieldParser<>() {
                 @Override
                 public LocalDateTime coerce(String value) {
-                    return ZonedDateTime.parse(value).withZoneSameInstant(zoneId).toLocalDateTime();
+                    return ZonedDateTime.parse(value)
+                            .withZoneSameInstant(zoneId)
+                            .toLocalDateTime();
                 }
 
                 @Override

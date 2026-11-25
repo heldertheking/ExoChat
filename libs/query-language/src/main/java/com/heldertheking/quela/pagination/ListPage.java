@@ -20,7 +20,7 @@ public class ListPage<T> extends AbstractList<T> {
     }
 
     public ListPage(List<T> page, String nextPageToken) {
-        this(page, nextPageToken, -1);   // -1 means unknown
+        this(page, nextPageToken, -1); // -1 means unknown
     }
 
     public static <T> ListPage<T> lastPage(List<T> page) {

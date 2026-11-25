@@ -1,16 +1,17 @@
 package com.heldertheking.quela.search;
 
-import com.heldertheking.quela.FieldResolutionException;
-import com.heldertheking.quela.FieldResolver;
-import com.heldertheking.quela.QueryLanguageLexer;
-import com.heldertheking.quela.QueryLanguageParser;
+import java.util.Objects;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
+import com.heldertheking.quela.FieldResolutionException;
+import com.heldertheking.quela.FieldResolver;
+import com.heldertheking.quela.QueryLanguageLexer;
+import com.heldertheking.quela.QueryLanguageParser;
 
 public final class AntlrSearchParser implements SearchParser {
     private final FieldResolver fieldResolver;
@@ -43,15 +44,15 @@ public final class AntlrSearchParser implements SearchParser {
             }
             throw new QueryParseException(e.getMessage(), e, query);
         } catch (FieldResolutionException e) {
-            throw new QueryParseException("failed to resolve field '%s' in search query".formatted(e.getField()), e, query);
+            throw new QueryParseException(
+                    "failed to resolve field '%s' in search query".formatted(e.getField()), e, query);
         } catch (Throwable e) {
             throw new QueryParseException("failed to parse search query", e, query);
         }
     }
 
     public static class Builder {
-        @Nullable
-        private FieldResolver fieldResolver;
+        @Nullable private FieldResolver fieldResolver;
 
         public Builder withFieldResolver(FieldResolver fieldResolver) {
             this.fieldResolver = fieldResolver;

@@ -12,7 +12,12 @@ public class PageCursor {
     private final Paginator paginator;
     private final boolean isLastPage;
 
-    PageCursor(String pageToken, Condition cursorCondition, PaginationRequest request, Paginator paginator, boolean isLastPage) {
+    PageCursor(
+            String pageToken,
+            Condition cursorCondition,
+            PaginationRequest request,
+            Paginator paginator,
+            boolean isLastPage) {
         this.pageToken = pageToken;
         this.cursorCondition = cursorCondition;
         this.request = request;
@@ -45,8 +50,8 @@ public class PageCursor {
         return isLastPage;
     }
 
-    /// Returns the next page token for the given last record of the current page.
-    /// This method is called after the current page has been fetched and the last record of the current page is known.
+    /// Returns the next page token for the given last record of the current page. This method is called after the
+    /// current page has been fetched and the last record of the current page is known.
     ///
     /// @param lastRecordOfCurrentPage last record of current page. Might be null if the current page is empty.
     /// @return [PageCursor] for the next page or null if there is no next page.

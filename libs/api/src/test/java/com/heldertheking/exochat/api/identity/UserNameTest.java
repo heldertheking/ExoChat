@@ -1,18 +1,19 @@
 package com.heldertheking.exochat.api.identity;
 
-import com.google.api.pathtemplate.ValidationException;
-import com.heldertheking.exochat.api.id.UuidV7;
-import com.heldertheking.resourcename.Name;
-import com.heldertheking.resourcename.ResourceNames;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Map;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import com.google.api.pathtemplate.ValidationException;
+import com.heldertheking.exochat.api.id.UuidV7;
+import com.heldertheking.resourcename.Name;
+import com.heldertheking.resourcename.ResourceNames;
 
 class UserNameTest {
     private static final UUID ID = UUID.fromString("0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b");
@@ -42,7 +43,8 @@ class UserNameTest {
 
         assertThat(UserName.fromName("users/" + ID)).isEqualTo(UserName.of(ID));
         assertThat(UserName.fromName("users/-")).isEqualTo(UserName.wildcard());
-        assertThat(UserName.fromName(UserName.of(generated).toString()).getPersistenceId()).isEqualTo(generated);
+        assertThat(UserName.fromName(UserName.of(generated).toString()).getPersistenceId())
+                .isEqualTo(generated);
     }
 
     @Test
@@ -55,15 +57,20 @@ class UserNameTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "", "users", "users/", "users/alice", "users/1",
-            "users/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b/accounts/1",
-            "pools/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b",
-            "/users/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b",
-            "users/0190A1B2-C3D4-7E5F-8A6B-7C8D9E0F1A2B",   // uppercase is not canonical
-            "users/6ba7b810-9dad-11d1-80b4-00c04fd430c8",   // version 1
-            "users/f47ac10b-58cc-4372-a567-0e02b2c3d479"    // version 4
-    })
+    @ValueSource(
+            strings = {
+                "",
+                "users",
+                "users/",
+                "users/alice",
+                "users/1",
+                "users/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b/accounts/1",
+                "pools/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b",
+                "/users/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a2b",
+                "users/0190A1B2-C3D4-7E5F-8A6B-7C8D9E0F1A2B", // uppercase is not canonical
+                "users/6ba7b810-9dad-11d1-80b4-00c04fd430c8", // version 1
+                "users/f47ac10b-58cc-4372-a567-0e02b2c3d479" // version 4
+            })
     void fromName_should_rejectOtherStrings(String name) {
         assertThatThrownBy(() -> UserName.fromName(name)).isInstanceOf(IllegalArgumentException.class);
     }
@@ -78,7 +85,8 @@ class UserNameTest {
         Name name = ResourceNames.match("users/" + ID).when(UserName::fromName).orElseThrow();
         assertThat(name).isEqualTo(UserName.of(ID));
 
-        assertThatThrownBy(() -> ResourceNames.match("pools/1").when(UserName::fromName).orElseThrow())
+        assertThatThrownBy(() ->
+                        ResourceNames.match("pools/1").when(UserName::fromName).orElseThrow())
                 .isInstanceOf(ValidationException.class);
     }
 }

@@ -24,6 +24,7 @@ liquibase = "5.0.4"
 mariadb = "4.0.0"
 picocli = "4.7.7"
 jacoco = "0.8.14"
+spotless = "8.12.0"
 
 [libraries]
 grpc-netty = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
@@ -67,3 +68,4 @@ protobuf = { id = "com.google.protobuf", version.ref = "protoc-plugin" }
 jooq-codegen = { id = "org.jooq.jooq-codegen-gradle", version.ref = "jooq" }
 liquibase = { id = "org.liquibase.gradle", version = "3.1.1" }
 errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -1,9 +1,9 @@
 package com.heldertheking.quela;
 
+import java.util.Collection;
+
 import org.jooq.Condition;
 import org.jooq.Field;
-
-import java.util.Collection;
 
 public class FieldConditionFactory<T> implements ConditionFactory<T> {
     protected final Field<T> field;

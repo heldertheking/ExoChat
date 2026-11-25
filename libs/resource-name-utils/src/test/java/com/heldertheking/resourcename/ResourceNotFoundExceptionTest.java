@@ -1,11 +1,12 @@
 package com.heldertheking.resourcename;
 
-import com.google.api.pathtemplate.PathTemplate;
-import com.google.common.collect.ImmutableMap;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.google.api.pathtemplate.PathTemplate;
+import com.google.common.collect.ImmutableMap;
 
 class ResourceNotFoundExceptionTest {
 

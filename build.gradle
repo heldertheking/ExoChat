@@ -2,16 +2,20 @@ plugins {
     alias(libs.plugins.spring.boot) apply false
     alias(libs.plugins.protobuf) apply false
     alias(libs.plugins.errorprone) apply false
+    alias(libs.plugins.spotless)
     id 'jacoco'
 }
 
 // Generated code is not worth measuring: jOOQ classes (committed under libs/db/src/main/jooq),
 // protobuf/gRPC stubs and ANTLR parsers.
 ext.coverageExcludes = [
-        'com/heldertheking/exochat/db/schema/**',          // jOOQ
-        'com/heldertheking/exochat/*/v1alpha1/**',         // protobuf / gRPC stubs
-        'com/heldertheking/quela/QueryLanguage*',          // ANTLR QueryLanguage lexer/parser/visitor
-        'com/heldertheking/quela/OrderByLanguage*',        // ANTLR OrderByLanguage lexer/parser/visitor
+    'com/heldertheking/exochat/db/schema/**',
+    // jOOQ
+    'com/heldertheking/exochat/*/v1alpha1/**',
+    // protobuf / gRPC stubs
+    'com/heldertheking/quela/QueryLanguage*',
+    // ANTLR QueryLanguage lexer/parser/visitor
+    'com/heldertheking/quela/OrderByLanguage*', // ANTLR OrderByLanguage lexer/parser/visitor
 ]
 
 repositories {
@@ -22,14 +26,63 @@ jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
 
+// Root-level formatting for build scripts, configs, and docs
+spotless {
+    groovyGradle {
+        target '*.gradle', 'gradle/*.gradle'
+        greclipse()
+        leadingTabsToSpaces(4)
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    format 'misc', {
+        target '*.md', '*.yml', '*.yaml', '*.json', '.gitignore', '.gitattributes'
+        targetExclude 'build/**', '.gradle/**', '**/node_modules/**'
+        trimTrailingWhitespace()
+        leadingTabsToSpaces(2)
+        endWithNewline()
+    }
+}
+
+// palantir-java-format does not understand `///` Markdown doc comments: when such a line is longer than the
+// line width it wraps it without the `///` prefix and the file no longer compiles. Fail early instead.
+tasks.register('checkDocCommentWidth') {
+    group = 'verification'
+    description = 'Fails if a /// doc comment line is longer than 120 characters (see comment in build.gradle)'
+    def sources = fileTree(rootDir) {
+        include '**/src/**/*.java'
+        exclude '**/build/**', '**/.gradle/**', '.claude/**'
+    }
+    inputs.files(sources)
+    doLast {
+        def tooLong = []
+        sources.each { f ->
+            f.readLines().eachWithIndex { line, i ->
+                if (line.trim().startsWith('///') && line.length() > 120) {
+                    tooLong << "${rootDir.toPath().relativize(f.toPath())}:${i + 1}"
+                }
+            }
+        }
+        if (tooLong) {
+            throw new GradleException('/// comment lines longer than 120 characters break palantir-java-format, wrap them by hand: ' + tooLong.join(', '))
+        }
+    }
+}
+
 subprojects {
     repositories {
         mavenCentral()
     }
 
-    // Every module with Java code gets a JaCoCo report after its tests.
+    tasks.matching { it.name.startsWith('spotlessJava') }.configureEach {
+        dependsOn rootProject.tasks.named('checkDocCommentWidth')
+    }
+
+    // Every module with Java code gets JaCoCo, ErrorProne/NullAway, and Spotless.
     plugins.withId('java') {
         apply plugin: 'jacoco'
+        apply plugin: 'net.ltgt.errorprone'
+        apply plugin: 'com.diffplug.spotless'
 
         jacoco {
             toolVersion = rootProject.libs.versions.jacoco.get()
@@ -42,15 +95,16 @@ subprojects {
         // Null safety for all code under com.heldertheking: everything is treated as @NullMarked
         // (no package-info.java needed); annotate with @Nullable where null is allowed, or with
         // @NullUnmarked on a class/package to opt out. Tests are exempt.
-        apply plugin: 'net.ltgt.errorprone'
-
         dependencies {
             errorprone rootProject.libs.errorprone.core
             errorprone rootProject.libs.nullaway
         }
 
         tasks.withType(JavaCompile).configureEach {
-            options.compilerArgs += ['--should-stop=ifError=FLOW', '-XDaddTypeAnnotationsToSymbol=true']
+            options.compilerArgs += [
+                '--should-stop=ifError=FLOW',
+                '-XDaddTypeAnnotationsToSymbol=true'
+            ]
             options.errorprone {
                 disableWarningsInGeneratedCode = true
                 // generated code: protobuf/gRPC, ANTLR (build/generated*) and committed jOOQ (src/main/jooq)
@@ -68,13 +122,27 @@ subprojects {
         tasks.named('jacocoTestReport', JacocoReport) {
             dependsOn tasks.named('test')
             reports {
-                xml.required = true   // for CI / SonarQube / Codecov
-                html.required = true  // build/reports/jacoco/test/html/index.html
+                xml.required = true // for CI / SonarQube / Codecov
+                html.required = true // build/reports/jacoco/test/html/index.html
                 csv.required = false
             }
             classDirectories.setFrom(files(classDirectories.files.collect {
                 fileTree(dir: it, exclude: rootProject.ext.coverageExcludes)
             }))
+        }
+
+        spotless {
+            java {
+                target 'src/**/*.java'
+                targetExclude 'build/**', 'src/main/jooq/**'
+
+                palantirJavaFormat() // 4-space indent, 120-char line width
+                removeUnusedImports()
+                importOrder('java', 'javax', 'jakarta', 'org', 'com', '')
+                formatAnnotations()
+                trimTrailingWhitespace()
+                endWithNewline()
+            }
         }
     }
 }
@@ -85,7 +153,9 @@ tasks.register('coverageReport', JacocoReport) {
     group = 'verification'
     description = 'Runs all tests and generates one combined JaCoCo report for all modules.'
 
-    def javaProjects = subprojects.findAll { it.file('src').exists() && !it.path.endsWith('exochat-bom') }
+    def javaProjects = subprojects.findAll {
+        it.file('src').exists() && !it.path.endsWith('exochat-bom')
+    }
 
     dependsOn javaProjects.collect { "${it.path}:test" }
 
@@ -95,7 +165,9 @@ tasks.register('coverageReport', JacocoReport) {
     classDirectories.setFrom(files(javaProjects.collect { p ->
         fileTree(dir: p.layout.buildDirectory.dir('classes/java/main'), exclude: coverageExcludes)
     }))
-    sourceDirectories.setFrom(files(javaProjects.collect { it.file('src/main/java') }))
+    sourceDirectories.setFrom(files(javaProjects.collect {
+        it.file('src/main/java')
+    }))
 
     reports {
         xml.required = true

@@ -1,15 +1,16 @@
 package com.heldertheking.resourcename;
 
-import com.google.api.pathtemplate.PathTemplate;
-import com.google.common.collect.ImmutableMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.Map;
+
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.google.api.pathtemplate.PathTemplate;
+import com.google.common.collect.ImmutableMap;
 
 class ResourceNameTest {
 
@@ -27,8 +28,7 @@ class ResourceNameTest {
 
         @Test
         void getTemplateVariables_should_mergeParentVariables() {
-            assertThat(TestPetName.of(7L, 42L).getTemplateVariables())
-                    .isEqualTo(Map.of("pool", "7", "pet", "42"));
+            assertThat(TestPetName.of(7L, 42L).getTemplateVariables()).isEqualTo(Map.of("pool", "7", "pet", "42"));
         }
 
         @Test

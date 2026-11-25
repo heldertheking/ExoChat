@@ -2,13 +2,15 @@ package com.heldertheking.exochat.app.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.heldertheking.exochat.health.v1alpha1.CheckRequest;
-import com.heldertheking.exochat.health.v1alpha1.HealthServiceGrpc;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+
+import com.heldertheking.exochat.health.v1alpha1.CheckRequest;
+import com.heldertheking.exochat.health.v1alpha1.HealthServiceGrpc;
+
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 
 @SpringBootTest(properties = "spring.grpc.server.port=0", webEnvironment = WebEnvironment.NONE)
 class HealthGrpcServiceTest {
@@ -18,8 +20,7 @@ class HealthGrpcServiceTest {
 
     @Test
     void checkReturnsOk() {
-        ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", lifecycle.getPort())
+        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", lifecycle.getPort())
                 .usePlaintext()
                 .build();
         try {

@@ -1,18 +1,19 @@
 package com.heldertheking.quela;
 
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.jooq.Condition;
+import org.jooq.SortField;
+import org.jooq.impl.DSL;
+import org.jspecify.annotations.Nullable;
+
 import com.heldertheking.quela.orderby.OrderByCondition;
 import com.heldertheking.quela.orderby.OrderByParser;
 import com.heldertheking.quela.pagination.PageCursor;
 import com.heldertheking.quela.pagination.PaginationRequest;
 import com.heldertheking.quela.pagination.Paginator;
 import com.heldertheking.quela.search.SearchParser;
-import org.jooq.Condition;
-import org.jooq.SortField;
-import org.jooq.impl.DSL;
-import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.stream.Stream;
 
 /// AbstractFilter is a base class for all repository filters used in list queries.
 /// It contains all necessary information to build a list query with pagination, filtering and sorting.
@@ -83,20 +84,21 @@ public abstract class AbstractFilter {
             Condition baseCondition,
             Condition filterCondition,
             OrderByCondition orderByClause,
-            PageCursor pageCursor
-    ) {
-    }
+            PageCursor pageCursor) {}
 
     public abstract static class Builder<T extends Builder<T, F>, F extends AbstractFilter> {
         protected final Paginator paginator;
         protected final OrderByParser orderByParser;
         protected final SearchParser searchParser;
         protected Condition baseCondition;
-        @Nullable protected Integer pageSize;
-        @Nullable protected String filter;
-        @Nullable protected String orderBy;
-        @Nullable protected String pageToken;
 
+        @Nullable protected Integer pageSize;
+
+        @Nullable protected String filter;
+
+        @Nullable protected String orderBy;
+
+        @Nullable protected String pageToken;
 
         protected Builder(Paginator paginator, OrderByParser orderByParser, SearchParser searchParser) {
             this.paginator = paginator;
@@ -105,7 +107,8 @@ public abstract class AbstractFilter {
             baseCondition = DSL.noCondition();
         }
 
-        protected Builder(Paginator paginator, OrderByParser orderByParser, SearchParser searchParser, Condition baseCondition) {
+        protected Builder(
+                Paginator paginator, OrderByParser orderByParser, SearchParser searchParser, Condition baseCondition) {
             this.paginator = paginator;
             this.orderByParser = orderByParser;
             this.searchParser = searchParser;
@@ -146,7 +149,8 @@ public abstract class AbstractFilter {
         }
 
         /// implementations should return additional pagination parameters that must not change when scrolling through
-        /// pages. orderBy and the filter are already considered by the [#withOrderBy(String)] and [#withFilter(String)]
+        /// pages. orderBy and the filter are already considered by the [#withOrderBy(String)] and
+        /// [#withFilter(String)]
         /// methods. This method should return all other parameters that are part of the pagination request like
         ///
         ///     - parent
@@ -158,28 +162,31 @@ public abstract class AbstractFilter {
         /// Builds the pagination parameters for the filter object.
         /// This method is helps when building the final filter object in the [#build()] method.
         protected PaginationParams buildPaginationParams() {
-            var pageSize = Math.max(this.pageSize == null || this.pageSize == 0 ? getDefaultPageSize() : Math.min(this.pageSize, maxPageSize()), 1);
+            var pageSize = Math.max(
+                    this.pageSize == null || this.pageSize == 0
+                            ? getDefaultPageSize()
+                            : Math.min(this.pageSize, maxPageSize()),
+                    1);
             var paginationParams = new PageRequest(
                     this.getClass().getName(),
                     pageToken,
                     orderByParser.parse(orderBy),
                     filter == null ? "" : filter,
                     additionalPaginationParams(),
-                    pageSize
-            );
+                    pageSize);
             var cursor = paginator.parse(paginationParams);
             var filterCondition = searchParser.parse(filter);
-            return new PaginationParams(
-                    baseCondition,
-                    filterCondition,
-                    paginationParams.orderByCondition(),
-                    cursor
-            );
+            return new PaginationParams(baseCondition, filterCondition, paginationParams.orderByCondition(), cursor);
         }
 
-        private record PageRequest(String pageType, @Nullable String paginationToken, OrderByCondition orderByCondition,
-                                   String filter, List<String> additionalParams,
-                                   int pageSize) implements PaginationRequest {
+        private record PageRequest(
+                String pageType,
+                @Nullable String paginationToken,
+                OrderByCondition orderByCondition,
+                String filter,
+                List<String> additionalParams,
+                int pageSize)
+                implements PaginationRequest {
 
             @Override
             public Stream<String> additionalPaginationParams() {

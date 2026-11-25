@@ -1,15 +1,16 @@
 package com.heldertheking.quela.search;
 
-import com.heldertheking.quela.FieldResolver;
-import com.heldertheking.quela.QueryFieldParser;
-import com.heldertheking.quela.QueryLanguageBaseVisitor;
-import com.heldertheking.quela.QueryLanguageParser;
+import java.math.BigDecimal;
+import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
 
-import java.math.BigDecimal;
-import java.util.List;
+import com.heldertheking.quela.FieldResolver;
+import com.heldertheking.quela.QueryFieldParser;
+import com.heldertheking.quela.QueryLanguageBaseVisitor;
+import com.heldertheking.quela.QueryLanguageParser;
 
 class JooqQuelaVisitor extends QueryLanguageBaseVisitor<Field<?>> {
     private final FieldResolver fieldResolver;
@@ -33,16 +34,12 @@ class JooqQuelaVisitor extends QueryLanguageBaseVisitor<Field<?>> {
 
     @Override
     public Condition visitAndCondition(QueryLanguageParser.AndConditionContext ctx) {
-        return ctx.orCondition().stream()
-                .map(this::visitOrCondition)
-                .reduce(DSL.noCondition(), Condition::and);
+        return ctx.orCondition().stream().map(this::visitOrCondition).reduce(DSL.noCondition(), Condition::and);
     }
 
     @Override
     public Condition visitOrCondition(QueryLanguageParser.OrConditionContext ctx) {
-        return ctx.notCondition().stream()
-                .map(this::visitNotCondition)
-                .reduce(DSL.noCondition(), Condition::or);
+        return ctx.notCondition().stream().map(this::visitNotCondition).reduce(DSL.noCondition(), Condition::or);
     }
 
     @Override
@@ -72,7 +69,10 @@ class JooqQuelaVisitor extends QueryLanguageBaseVisitor<Field<?>> {
         return buildCondition(fieldName, ctx.operator(), ctx.literal());
     }
 
-    private <T> Condition buildCondition(String fieldName, QueryLanguageParser.OperatorContext operator, QueryLanguageParser.LiteralContext literal) {
+    private <T> Condition buildCondition(
+            String fieldName,
+            QueryLanguageParser.OperatorContext operator,
+            QueryLanguageParser.LiteralContext literal) {
         var fieldDefinition = fieldResolver.<T>resolveField(fieldName);
         var type = fieldDefinition.propertyParser();
         var conditionFactory = fieldDefinition.conditionFactory();
@@ -84,7 +84,9 @@ class JooqQuelaVisitor extends QueryLanguageBaseVisitor<Field<?>> {
             if (operator instanceof QueryLanguageParser.NeqContext) {
                 return conditionFactory.isNotNull();
             }
-            throw new UnsupportedOperationException("Null literal can only be used with the equals or not-equals operator but not with %s".formatted(operator.getText()));
+            throw new UnsupportedOperationException(
+                    "Null literal can only be used with the equals or not-equals operator but not with %s"
+                            .formatted(operator.getText()));
         }
 
         T fieldValue;
@@ -98,7 +100,8 @@ class JooqQuelaVisitor extends QueryLanguageBaseVisitor<Field<?>> {
                 case QueryFieldParser.NumberQueryFieldParser<?> number -> "NUMBER";
                 case QueryFieldParser.StringQueryFieldParser<?> string -> "STRING";
             };
-            throw new InternalQueryParseException("failed to coerce %s value '%s' for field '%s'".formatted(expectedLiteralType, stripQuotes(literal), fieldName));
+            throw new InternalQueryParseException("failed to coerce %s value '%s' for field '%s'"
+                    .formatted(expectedLiteralType, stripQuotes(literal), fieldName));
         }
 
         try {
@@ -112,29 +115,39 @@ class JooqQuelaVisitor extends QueryLanguageBaseVisitor<Field<?>> {
                 default -> throw new UnsupportedOperationException("Unknown operator: " + operator.getText());
             };
         } catch (UnsupportedOperatorException e) {
-            throw new InternalQueryParseException("operator '%s' is not supported on field '%s'".formatted(e.getOperator(), fieldName), e);
+            throw new InternalQueryParseException(
+                    "operator '%s' is not supported on field '%s'".formatted(e.getOperator(), fieldName), e);
         }
     }
 
-    private static <T> T coerceFieldValue(String fieldName, QueryFieldParser<T> type, QueryLanguageParser.LiteralContext literal) {
+    private static <T> T coerceFieldValue(
+            String fieldName, QueryFieldParser<T> type, QueryLanguageParser.LiteralContext literal) {
         return switch (type) {
             case QueryFieldParser.BooleanQueryFieldParser<T> bool -> {
                 if (literal instanceof QueryLanguageParser.BooleanLiteralContext b) {
                     yield bool.coerce(Boolean.parseBoolean(b.BOOLEAN().getText()));
                 }
-                throw new UnsupportedOperationException("literal '%s' is expected to be a boolean when comparing with field '%s'".formatted(stripQuotes(literal), fieldName));
+                throw new UnsupportedOperationException(
+                        "literal '%s' is expected to be a boolean when comparing with field '%s'"
+                                .formatted(stripQuotes(literal), fieldName));
             }
             case QueryFieldParser.NumberQueryFieldParser<T> number -> {
                 if (literal instanceof QueryLanguageParser.NumberLiteralContext b) {
                     yield number.coerce(new BigDecimal(b.NUMBER().getText()));
                 }
-                throw new UnsupportedOperationException("literal '%s' is expected to be a number when comparing with field '%s'".formatted(stripQuotes(literal), fieldName));
+                throw new UnsupportedOperationException(
+                        "literal '%s' is expected to be a number when comparing with field '%s'"
+                                .formatted(stripQuotes(literal), fieldName));
             }
             case QueryFieldParser.StringQueryFieldParser<T> string -> {
                 if (literal instanceof QueryLanguageParser.StringLiteralContext b) {
-                    yield string.coerce(b.STRING().getText().substring(1, b.STRING().getText().length() - 1));
+                    yield string.coerce(b.STRING()
+                            .getText()
+                            .substring(1, b.STRING().getText().length() - 1));
                 }
-                throw new UnsupportedOperationException("literal '%s' is expected to be a string when comparing with field '%s'".formatted(stripQuotes(literal), fieldName));
+                throw new UnsupportedOperationException(
+                        "literal '%s' is expected to be a string when comparing with field '%s'"
+                                .formatted(stripQuotes(literal), fieldName));
             }
         };
     }
@@ -149,7 +162,7 @@ class JooqQuelaVisitor extends QueryLanguageBaseVisitor<Field<?>> {
         var fieldDefinition = fieldResolver.<T>resolveField(fieldName);
         final var conditionFactory = fieldDefinition.conditionFactory();
         var type = fieldDefinition.propertyParser();
-        return conditionFactory
-                .in(literal.stream().map(l -> coerceFieldValue(fieldName, type, l)).toList());
+        return conditionFactory.in(
+                literal.stream().map(l -> coerceFieldValue(fieldName, type, l)).toList());
     }
 }

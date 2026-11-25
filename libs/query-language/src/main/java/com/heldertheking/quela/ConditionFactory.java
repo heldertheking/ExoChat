@@ -1,8 +1,8 @@
 package com.heldertheking.quela;
 
-import org.jooq.Condition;
-
 import java.util.Collection;
+
+import org.jooq.Condition;
 
 /// @param <V> field / row propertyParser
 public interface ConditionFactory<V> {
