@@ -4,6 +4,8 @@
 package com.heldertheking.exochat.db.schema;
 
 
+import com.heldertheking.exochat.db.schema.tables.Account;
+import com.heldertheking.exochat.db.schema.tables.Relationship;
 import com.heldertheking.exochat.db.schema.tables.User;
 
 
@@ -12,6 +14,16 @@ import com.heldertheking.exochat.db.schema.tables.User;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>account</code>.
+     */
+    public static final Account ACCOUNT = Account.ACCOUNT;
+
+    /**
+     * The table <code>relationship</code>.
+     */
+    public static final Relationship RELATIONSHIP = Relationship.RELATIONSHIP;
 
     /**
      * The table <code>user</code>.

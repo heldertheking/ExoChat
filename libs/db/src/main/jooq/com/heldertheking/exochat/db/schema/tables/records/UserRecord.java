@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 
 /**
@@ -39,26 +40,58 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> {
     }
 
     /**
-     * Setter for <code>user.display_name</code>.
+     * Setter for <code>user.email</code>.
      */
-    public UserRecord setDisplayName(@NonNull String value) {
+    public UserRecord setEmail(@NonNull String value) {
         set(1, value);
         return this;
     }
 
     /**
-     * Getter for <code>user.display_name</code>.
+     * Getter for <code>user.email</code>.
      */
     @NonNull
-    public String getDisplayName() {
+    public String getEmail() {
         return (String) get(1);
+    }
+
+    /**
+     * Setter for <code>user.phone_number</code>.
+     */
+    public UserRecord setPhoneNumber(@Nullable String value) {
+        set(2, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>user.phone_number</code>.
+     */
+    @Nullable
+    public String getPhoneNumber() {
+        return (String) get(2);
+    }
+
+    /**
+     * Setter for <code>user.password_hash</code>.
+     */
+    public UserRecord setPasswordHash(@NonNull String value) {
+        set(3, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>user.password_hash</code>.
+     */
+    @NonNull
+    public String getPasswordHash() {
+        return (String) get(3);
     }
 
     /**
      * Setter for <code>user.create_time</code>.
      */
     public UserRecord setCreateTime(LocalDateTime value) {
-        set(2, value);
+        set(4, value);
         return this;
     }
 
@@ -66,7 +99,22 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> {
      * Getter for <code>user.create_time</code>.
      */
     public LocalDateTime getCreateTime() {
-        return (LocalDateTime) get(2);
+        return (LocalDateTime) get(4);
+    }
+
+    /**
+     * Setter for <code>user.update_time</code>.
+     */
+    public UserRecord setUpdateTime(LocalDateTime value) {
+        set(5, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>user.update_time</code>.
+     */
+    public LocalDateTime getUpdateTime() {
+        return (LocalDateTime) get(5);
     }
 
     // -------------------------------------------------------------------------
@@ -93,12 +141,15 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> {
     /**
      * Create a detached, initialised UserRecord
      */
-    public UserRecord(@NonNull UUID id, @NonNull String displayName, LocalDateTime createTime) {
+    public UserRecord(@NonNull UUID id, @NonNull String email, @Nullable String phoneNumber, @NonNull String passwordHash, LocalDateTime createTime, LocalDateTime updateTime) {
         super(User.USER);
 
         setId(id);
-        setDisplayName(displayName);
+        setEmail(email);
+        setPhoneNumber(phoneNumber);
+        setPasswordHash(passwordHash);
         setCreateTime(createTime);
+        setUpdateTime(updateTime);
         resetTouchedOnNotNull();
     }
 }

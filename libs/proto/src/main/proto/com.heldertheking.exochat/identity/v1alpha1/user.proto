@@ -59,7 +59,7 @@ message User {
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // Contact and login email. Private, never shown to other users.
-  string email = 2 [(google.api.field_behavior) = OPTIONAL];
+  string email = 2 [(google.api.field_behavior) = REQUIRED];
   // Contact phone number. Private, never shown to other users.
   string phone_number = 3 [(google.api.field_behavior) = OPTIONAL];
 

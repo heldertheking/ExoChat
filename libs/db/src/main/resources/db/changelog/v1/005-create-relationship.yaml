@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-relationship
+      author: exochat
+      comment: >
+        relationship is a social link from an owning account to a target account (proto Relationship), name
+        users/{user}/accounts/{account}/relationships/{relationship}. Every link exists once per side: a friendship
+        is two rows (one per account), a block is a single row on the blocking side. type holds the RelationshipType
+        without the UNSPECIFIED value.
+      changes:
+        - sql:
+            sql: >
+              CREATE TABLE `relationship` (
+                `id` UUID NOT NULL,
+                `owner_account_id` UUID NOT NULL,
+                `target_account_id` UUID NOT NULL,
+                `type` VARCHAR(20) NOT NULL,
+                `create_time` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                `update_time` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+                PRIMARY KEY (`id`),
+                CONSTRAINT `uq_relationship_owner_target` UNIQUE (`owner_account_id`, `target_account_id`),
+                CONSTRAINT `ck_relationship_type` CHECK (`type` IN ('FRIEND', 'PENDING_INCOMING', 'PENDING_OUTGOING', 'BLOCKED')),
+                CONSTRAINT `ck_relationship_not_self` CHECK (`owner_account_id` <> `target_account_id`),
+                CONSTRAINT `fk_relationship_owner` FOREIGN KEY (`owner_account_id`) REFERENCES `account` (`id`) ON DELETE CASCADE,
+                CONSTRAINT `fk_relationship_target` FOREIGN KEY (`target_account_id`) REFERENCES `account` (`id`) ON DELETE CASCADE,
+                KEY `ix_relationship_target` (`target_account_id`)
+              )
+      rollback:
+        - sql:
+            sql: DROP TABLE `relationship`

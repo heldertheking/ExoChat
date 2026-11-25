@@ -3,3 +3,9 @@ databaseChangeLog:
       file: db/changelog/v1/001-create-user.yaml
   - include:
       file: db/changelog/v1/002-user-id-uuid.yaml
+  - include:
+      file: db/changelog/v1/003-user-identity-columns.yaml
+  - include:
+      file: db/changelog/v1/004-create-account.yaml
+  - include:
+      file: db/changelog/v1/005-create-relationship.yaml

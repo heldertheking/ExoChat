@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-user-identity-columns
+      author: exochat
+      comment: >
+        user is the root login identity (proto User): contact data and credentials. The display name moves to the
+        account, the public persona. Pre-release only: existing rows have no email or password hash, so they are removed.
+      changes:
+        - sql:
+            sql: DELETE FROM `user`
+        - sql:
+            sql: >
+              ALTER TABLE `user`
+                DROP COLUMN `display_name`,
+                ADD COLUMN `email` VARCHAR(320) NOT NULL AFTER `id`,
+                ADD COLUMN `phone_number` VARCHAR(32) NULL AFTER `email`,
+                ADD COLUMN `password_hash` VARCHAR(255) NOT NULL AFTER `phone_number`,
+                ADD COLUMN `update_time` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+                  ON UPDATE CURRENT_TIMESTAMP(6) AFTER `create_time`,
+                ADD CONSTRAINT `uq_user_email` UNIQUE (`email`),
+                ADD CONSTRAINT `uq_user_phone_number` UNIQUE (`phone_number`)
+      rollback:
+        - sql:
+            sql: DELETE FROM `user`
+        - sql:
+            sql: >
+              ALTER TABLE `user`
+                DROP CONSTRAINT `uq_user_email`,
+                DROP CONSTRAINT `uq_user_phone_number`,
+                DROP COLUMN `email`,
+                DROP COLUMN `phone_number`,
+                DROP COLUMN `password_hash`,
+                DROP COLUMN `update_time`,
+                ADD COLUMN `display_name` VARCHAR(255) NOT NULL AFTER `id`

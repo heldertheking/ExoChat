@@ -5,17 +5,24 @@ package com.heldertheking.exochat.db.schema.tables;
 
 
 import com.heldertheking.exochat.db.schema.Keys;
+import com.heldertheking.exochat.db.schema.tables.Account.AccountPath;
 import com.heldertheking.exochat.db.schema.tables.records.UserRecord;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.ForeignKey;
+import org.jooq.InverseForeignKey;
 import org.jooq.Name;
+import org.jooq.Path;
 import org.jooq.PlainSQL;
 import org.jooq.QueryPart;
+import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Stringly;
 import org.jooq.Table;
@@ -58,14 +65,29 @@ public class User extends TableImpl<UserRecord> {
     public final TableField<UserRecord, UUID> ID = createField(DSL.name("id"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
-     * The column <code>user.display_name</code>.
+     * The column <code>user.email</code>.
      */
-    public final TableField<UserRecord, String> DISPLAY_NAME = createField(DSL.name("display_name"), SQLDataType.VARCHAR(255).nullable(false), this, "");
+    public final TableField<UserRecord, String> EMAIL = createField(DSL.name("email"), SQLDataType.VARCHAR(320).nullable(false), this, "");
+
+    /**
+     * The column <code>user.phone_number</code>.
+     */
+    public final TableField<UserRecord, String> PHONE_NUMBER = createField(DSL.name("phone_number"), SQLDataType.VARCHAR(32).defaultValue(DSL.field(DSL.raw("NULL"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>user.password_hash</code>.
+     */
+    public final TableField<UserRecord, String> PASSWORD_HASH = createField(DSL.name("password_hash"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
      * The column <code>user.create_time</code>.
      */
     public final TableField<UserRecord, LocalDateTime> CREATE_TIME = createField(DSL.name("create_time"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("current_timestamp(6)"), SQLDataType.LOCALDATETIME)), this, "");
+
+    /**
+     * The column <code>user.update_time</code>.
+     */
+    public final TableField<UserRecord, LocalDateTime> UPDATE_TIME = createField(DSL.name("update_time"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("current_timestamp(6)"), SQLDataType.LOCALDATETIME)), this, "");
 
     private User(Name alias, Table<UserRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -96,10 +118,61 @@ public class User extends TableImpl<UserRecord> {
         this(DSL.name("user"), null);
     }
 
+    public <O extends Record> User(Table<O> path, ForeignKey<O, UserRecord> childPath, InverseForeignKey<O, UserRecord> parentPath) {
+        super(path, childPath, parentPath, USER);
+    }
+
+    /**
+     * A subtype implementing {@link Path} for simplified path-based joins.
+     */
+    public static class UserPath extends User implements Path<UserRecord> {
+
+        private static final long serialVersionUID = 1L;
+        public <O extends Record> UserPath(Table<O> path, ForeignKey<O, UserRecord> childPath, InverseForeignKey<O, UserRecord> parentPath) {
+            super(path, childPath, parentPath);
+        }
+        private UserPath(Name alias, Table<UserRecord> aliased) {
+            super(alias, aliased);
+        }
+
+        @Override
+        public UserPath as(String alias) {
+            return new UserPath(DSL.name(alias), this);
+        }
+
+        @Override
+        public UserPath as(Name alias) {
+            return new UserPath(alias, this);
+        }
+
+        @Override
+        public UserPath as(Table<?> alias) {
+            return new UserPath(alias.getUnqualifiedName(), this);
+        }
+    }
+
     @Override
     @NonNull
     public UniqueKey<UserRecord> getPrimaryKey() {
         return Keys.KEY_USER_PRIMARY;
+    }
+
+    @Override
+    @NonNull
+    public List<UniqueKey<UserRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.KEY_USER_UQ_USER_EMAIL, Keys.KEY_USER_UQ_USER_PHONE_NUMBER);
+    }
+
+    private transient AccountPath _account;
+
+    /**
+     * Get the implicit to-many join path to the <code>account</code> table
+     */
+    public AccountPath account() {
+        if (_account == null)
+            _account = new AccountPath(this, null, Keys.FK_ACCOUNT_USER.getInverseKey());
+
+        return _account;
     }
 
     @Override

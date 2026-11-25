@@ -43,9 +43,9 @@ class UserTableTest {
 
     @Test
     void readsPreparedDataset() {
-        var names = dsl.select(USER.DISPLAY_NAME).from(USER).orderBy(USER.ID).fetch(USER.DISPLAY_NAME);
+        var emails = dsl.select(USER.EMAIL).from(USER).orderBy(USER.ID).fetch(USER.EMAIL);
 
-        assertThat(names).containsExactly("Alice Example", "Bob Example");
+        assertThat(emails).containsExactly("alice@example.com", "bob@example.com");
     }
 
     @Test
@@ -60,7 +60,8 @@ class UserTableTest {
         for (var id : shuffled) {
             dsl.insertInto(USER)
                     .set(USER.ID, id)
-                    .set(USER.DISPLAY_NAME, id.toString())
+                    .set(USER.EMAIL, id + "@example.com")
+                    .set(USER.PASSWORD_HASH, "hash")
                     .execute();
         }
 
