@@ -6,6 +6,7 @@ import com.google.protobuf.Empty;
 import com.heldertheking.exochat.api.identity.AccountName;
 import com.heldertheking.exochat.api.identity.RelationshipName;
 import com.heldertheking.exochat.app.identity.RelationshipRepository.RelationshipView;
+import com.heldertheking.exochat.app.ratelimit.RateLimited;
 import com.heldertheking.exochat.identity.v1alpha1.AcceptRelationshipRequest;
 import com.heldertheking.exochat.identity.v1alpha1.BlockAccountRequest;
 import com.heldertheking.exochat.identity.v1alpha1.BlockAccountResponse;
@@ -69,6 +70,7 @@ class RelationshipGrpcService extends RelationshipServiceGrpc.RelationshipServic
         respond(responseObserver, view, name.getParent());
     }
 
+    @RateLimited("relationship-request")
     @Override
     public void createRelationship(CreateRelationshipRequest request, StreamObserver<Relationship> responseObserver) {
         var owner = AccountName.fromName(request.getParent());
@@ -114,6 +116,7 @@ class RelationshipGrpcService extends RelationshipServiceGrpc.RelationshipServic
         responseObserver.onCompleted();
     }
 
+    @RateLimited("relationship-block")
     @Override
     public void blockAccount(BlockAccountRequest request, StreamObserver<BlockAccountResponse> responseObserver) {
         var owner = AccountName.fromName(request.getParent());

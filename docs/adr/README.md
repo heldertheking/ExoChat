@@ -29,3 +29,4 @@ Context, the decision, and the consequences, in a few short paragraphs.
 | [011](011-uuidv7-primary-keys.md) | UUIDv7 primary keys | Accepted |
 | [012](012-own-jwt-authentication.md) | Own JWT authentication with rotating refresh tokens | Proposed |
 | [013](013-layered-rules-for-permissions.md) | Layered allow/deny rules for permissions | Proposed |
+| [014](014-rate-limiting.md) | Rate limiting above the gRPC services | Proposed |

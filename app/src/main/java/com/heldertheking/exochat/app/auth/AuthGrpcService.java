@@ -6,6 +6,7 @@ import com.heldertheking.exochat.api.identity.AccountName;
 import com.heldertheking.exochat.api.identity.SessionName;
 import com.heldertheking.exochat.api.identity.UserName;
 import com.heldertheking.exochat.app.identity.IdentityMapper;
+import com.heldertheking.exochat.app.ratelimit.RateLimited;
 import com.heldertheking.exochat.app.security.PermissionEvaluator;
 import com.heldertheking.exochat.auth.v1alpha1.AuthServiceGrpc;
 import com.heldertheking.exochat.auth.v1alpha1.AuthenticateUserRequest;
@@ -37,6 +38,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         this.permissionEvaluator = permissionEvaluator;
     }
 
+    @RateLimited("register")
     @Override
     public void registerUser(RegisterUserRequest request, StreamObserver<RegisterUserResponse> responseObserver) {
         var result = authRepository.register(
@@ -57,6 +59,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @RateLimited("login")
     @Override
     public void authenticateUser(
             AuthenticateUserRequest request, StreamObserver<AuthenticateUserResponse> responseObserver) {
@@ -69,6 +72,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @RateLimited("switch-account")
     @Override
     public void switchAccount(SwitchAccountRequest request, StreamObserver<SwitchAccountResponse> responseObserver) {
         var sessionName = SessionName.fromName(request.getName());
@@ -87,6 +91,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @RateLimited("change-password")
     @Override
     public void changePassword(ChangePasswordRequest request, StreamObserver<ChangePasswordResponse> responseObserver) {
         var user = UserName.fromName(request.getName());
@@ -100,6 +105,7 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @RateLimited("refresh")
     @Override
     public void refreshSession(RefreshSessionRequest request, StreamObserver<RefreshSessionResponse> responseObserver) {
         var result = authRepository.refresh(request.getRefreshToken());

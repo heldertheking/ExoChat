@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.protobuf.Empty;
 import com.heldertheking.exochat.api.identity.UserName;
+import com.heldertheking.exochat.app.ratelimit.RateLimited;
 import com.heldertheking.exochat.identity.v1alpha1.DeleteUserRequest;
 import com.heldertheking.exochat.identity.v1alpha1.GetUserRequest;
 import com.heldertheking.exochat.identity.v1alpha1.UpdateUserRequest;
@@ -34,6 +35,7 @@ class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @RateLimited("user-update")
     @Override
     public void updateUser(UpdateUserRequest request, StreamObserver<User> responseObserver) {
         var changes = request.getUser();
@@ -45,6 +47,7 @@ class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @RateLimited("user-delete")
     @Override
     public void deleteUser(DeleteUserRequest request, StreamObserver<Empty> responseObserver) {
         var name = UserName.fromName(request.getName());

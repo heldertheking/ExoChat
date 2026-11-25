@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.google.protobuf.Empty;
 import com.heldertheking.exochat.api.identity.AccountName;
 import com.heldertheking.exochat.api.identity.UserName;
+import com.heldertheking.exochat.app.ratelimit.RateLimited;
 import com.heldertheking.exochat.identity.v1alpha1.Account;
 import com.heldertheking.exochat.identity.v1alpha1.AccountServiceGrpc;
 import com.heldertheking.exochat.identity.v1alpha1.CreateAccountRequest;
@@ -56,6 +57,7 @@ class AccountGrpcService extends AccountServiceGrpc.AccountServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @RateLimited("account-create")
     @Override
     public void createAccount(CreateAccountRequest request, StreamObserver<Account> responseObserver) {
         var parent = UserName.fromName(request.getParent());
