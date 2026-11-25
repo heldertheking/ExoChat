@@ -1,5 +1,6 @@
 package com.heldertheking.exochat.app.auth;
 
+import static com.heldertheking.exochat.db.schema.Tables.ACCOUNT;
 import static com.heldertheking.exochat.db.schema.Tables.SESSION;
 import static com.heldertheking.exochat.db.schema.Tables.USER;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +25,7 @@ import com.heldertheking.exochat.auth.v1alpha1.ChangePasswordRequest;
 import com.heldertheking.exochat.auth.v1alpha1.RefreshSessionRequest;
 import com.heldertheking.exochat.auth.v1alpha1.RegisterUserRequest;
 import com.heldertheking.exochat.auth.v1alpha1.RegisterUserResponse;
+import com.heldertheking.exochat.auth.v1alpha1.SwitchAccountRequest;
 import com.heldertheking.exochat.health.v1alpha1.CheckRequest;
 import com.heldertheking.exochat.health.v1alpha1.HealthServiceGrpc;
 import com.heldertheking.exochat.identity.v1alpha1.DeleteSessionRequest;
@@ -55,6 +57,9 @@ class SessionGrpcServiceTest {
 
     @Autowired
     private AuthGrpcServiceTest.MutableClock clock;
+
+    @Autowired
+    private AccessTokens accessTokens;
 
     private ManagedChannel channel;
     private AuthServiceGrpc.AuthServiceBlockingStub auth;
@@ -284,15 +289,173 @@ class SessionGrpcServiceTest {
         assertThat(dsl.fetchCount(SESSION)).isEqualTo(2);
     }
 
-    @Test
-    void changePassword_should_beUnimplementedForAuthenticatedCallers() {
-        var alice = register("alice@example.com", "alice");
+    private String insertAccount(String userName, String username) {
+        var userId = java.util.UUID.fromString(userName.substring("users/".length()));
+        var id = com.heldertheking.exochat.api.id.UuidV7.next();
+        dsl.insertInto(ACCOUNT)
+                .set(ACCOUNT.ID, id)
+                .set(ACCOUNT.USER_ID, userId)
+                .set(ACCOUNT.USERNAME, username)
+                .set(ACCOUNT.DISPLAY_NAME, username)
+                .execute();
+        return userName + "/accounts/" + id;
+    }
 
+    @Test
+    void switchAccount_should_changeTheActiveAccountOfTheSession() {
+        var alice = register("alice@example.com", "alice");
+        var second = insertAccount(alice.getUser().getName(), "alice_two");
+        var stub = bearer(auth, alice.getTokens().getAccessToken());
+
+        var response = stub.switchAccount(SwitchAccountRequest.newBuilder()
+                .setName(alice.getSession().getName())
+                .setAccount(second)
+                .build());
+
+        assertThat(response.getSession().getAccount()).isEqualTo(second);
+        assertThat(response.getSession().getName()).isEqualTo(alice.getSession().getName());
+        var claims = accessTokens.verify(response.getAccessToken());
+        assertThat(second).endsWith("/accounts/" + claims.accountId());
+        assertThat(claims.sessionId())
+                .isEqualTo(
+                        accessTokens.verify(alice.getTokens().getAccessToken()).sessionId());
+        assertThat(response.getAccessTokenExpireTime().getSeconds())
+                .isEqualTo(START.plus(Duration.ofMinutes(15)).getEpochSecond());
+        assertThat(bearer(sessions, response.getAccessToken())
+                        .getSession(GetSessionRequest.newBuilder()
+                                .setName(alice.getSession().getName())
+                                .build())
+                        .getAccount())
+                .isEqualTo(second);
+
+        // the choice survives a refresh
+        var refreshed = auth.refreshSession(RefreshSessionRequest.newBuilder()
+                .setRefreshToken(alice.getTokens().getRefreshToken())
+                .build());
+        assertThat(refreshed.getSession().getAccount()).isEqualTo(second);
+        assertThat(second)
+                .endsWith("/accounts/"
+                        + accessTokens
+                                .verify(refreshed.getTokens().getAccessToken())
+                                .accountId());
+    }
+
+    @Test
+    void switchAccount_should_rejectForeignAccountsSessionsAndBadNames() {
+        var alice = register("alice@example.com", "alice");
+        var bob = register("bob@example.com", "bob");
+        var laptop = login("alice@example.com", "laptop");
+        var stub = bearer(auth, alice.getTokens().getAccessToken());
+
+        assertThat(codeOf(() -> stub.switchAccount(SwitchAccountRequest.newBuilder()
+                        .setName(alice.getSession().getName())
+                        .setAccount(bob.getAccount().getName())
+                        .build())))
+                .as("an account of another user")
+                .isEqualTo(Status.Code.PERMISSION_DENIED);
+        assertThat(codeOf(() -> stub.switchAccount(SwitchAccountRequest.newBuilder()
+                        .setName(laptop.getSession().getName())
+                        .setAccount(alice.getAccount().getName())
+                        .build())))
+                .as("only the session of the caller can be changed")
+                .isEqualTo(Status.Code.PERMISSION_DENIED);
+        assertThat(codeOf(() -> stub.switchAccount(SwitchAccountRequest.newBuilder()
+                        .setName(alice.getSession().getName())
+                        .setAccount(alice.getUser().getName() + "/accounts/0190a1b2-c3d4-7e5f-8a6b-7c8d9e0f1a01")
+                        .build())))
+                .as("an account that does not exist")
+                .isEqualTo(Status.Code.NOT_FOUND);
+        assertThat(codeOf(() -> stub.switchAccount(SwitchAccountRequest.newBuilder()
+                        .setName(alice.getSession().getName())
+                        .setAccount("nope")
+                        .build())))
+                .isEqualTo(Status.Code.INVALID_ARGUMENT);
+        assertThat(codeOf(() -> auth.switchAccount(SwitchAccountRequest.getDefaultInstance())))
+                .isEqualTo(Status.Code.UNAUTHENTICATED);
+    }
+
+    @Test
+    void switchAccount_should_failWhenTheSessionWasRevoked() {
+        var alice = register("alice@example.com", "alice");
+        var laptop = login("alice@example.com", "laptop");
+        bearer(sessions, laptop.getTokens().getAccessToken())
+                .deleteSession(DeleteSessionRequest.newBuilder()
+                        .setName(alice.getSession().getName())
+                        .build());
+
+        assertThat(codeOf(() -> bearer(auth, alice.getTokens().getAccessToken())
+                        .switchAccount(SwitchAccountRequest.newBuilder()
+                                .setName(alice.getSession().getName())
+                                .setAccount(alice.getAccount().getName())
+                                .build())))
+                .isEqualTo(Status.Code.UNAUTHENTICATED);
+    }
+
+    @Test
+    void changePassword_should_replaceThePasswordAndRevokeTheOtherSessions() {
+        var phone = register("alice@example.com", "alice");
+        var laptop = login("alice@example.com", "laptop");
+        var stub = bearer(auth, laptop.getTokens().getAccessToken());
+
+        stub.changePassword(ChangePasswordRequest.newBuilder()
+                .setName(phone.getUser().getName())
+                .setOldPassword(PASSWORD)
+                .setNewPassword("a brand new password")
+                .build());
+
+        assertThat(dsl.fetchCount(SESSION))
+                .as("only the current session is left")
+                .isEqualTo(1);
+        assertThat(codeOf(() -> auth.refreshSession(RefreshSessionRequest.newBuilder()
+                        .setRefreshToken(phone.getTokens().getRefreshToken())
+                        .build())))
+                .isEqualTo(Status.Code.UNAUTHENTICATED);
+        auth.refreshSession(RefreshSessionRequest.newBuilder()
+                .setRefreshToken(laptop.getTokens().getRefreshToken())
+                .build());
+        assertThat(codeOf(() -> login("alice@example.com", "again"))).isEqualTo(Status.Code.UNAUTHENTICATED);
+        auth.authenticateUser(AuthenticateUserRequest.newBuilder()
+                .setEmail("alice@example.com")
+                .setPassword("a brand new password")
+                .build());
+        assertThat(dsl.select(USER.PASSWORD_HASH).from(USER).fetchOne(USER.PASSWORD_HASH))
+                .startsWith("$argon2id$");
+    }
+
+    @Test
+    void changePassword_should_rejectWrongOldPasswordBadNewPasswordAndOtherUsers() {
+        var alice = register("alice@example.com", "alice");
+        var bob = register("bob@example.com", "bob");
+        var stub = bearer(auth, alice.getTokens().getAccessToken());
+        var name = alice.getUser().getName();
+
+        assertThat(codeOf(() -> stub.changePassword(ChangePasswordRequest.newBuilder()
+                        .setName(name)
+                        .setOldPassword("not the password")
+                        .setNewPassword("a brand new password")
+                        .build())))
+                .isEqualTo(Status.Code.PERMISSION_DENIED);
+        assertThat(codeOf(() -> stub.changePassword(ChangePasswordRequest.newBuilder()
+                        .setName(name)
+                        .setOldPassword(PASSWORD)
+                        .setNewPassword("short")
+                        .build())))
+                .isEqualTo(Status.Code.INVALID_ARGUMENT);
+        assertThat(codeOf(() -> stub.changePassword(ChangePasswordRequest.newBuilder()
+                        .setName(name)
+                        .setOldPassword(PASSWORD)
+                        .setNewPassword(PASSWORD)
+                        .build())))
+                .isEqualTo(Status.Code.INVALID_ARGUMENT);
+        assertThat(codeOf(() -> stub.changePassword(ChangePasswordRequest.newBuilder()
+                        .setName(bob.getUser().getName())
+                        .setOldPassword(PASSWORD)
+                        .setNewPassword("a brand new password")
+                        .build())))
+                .isEqualTo(Status.Code.PERMISSION_DENIED);
         assertThat(codeOf(() -> auth.changePassword(ChangePasswordRequest.getDefaultInstance())))
                 .as("not public")
                 .isEqualTo(Status.Code.UNAUTHENTICATED);
-        assertThat(codeOf(() -> bearer(auth, alice.getTokens().getAccessToken())
-                        .changePassword(ChangePasswordRequest.getDefaultInstance())))
-                .isEqualTo(Status.Code.UNIMPLEMENTED);
+        login("alice@example.com", "still works");
     }
 }

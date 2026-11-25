@@ -210,6 +210,69 @@ public class AuthenticationService {
         };
     }
 
+    /// Makes the account the active one of the session of the caller and issues an access token for it.
+    ///
+    /// @throws io.grpc.StatusRuntimeException NOT_FOUND if the user has no such account, UNAUTHENTICATED if the
+    ///         session was revoked in the meantime
+    public SwitchedAccount switchAccount(Caller caller, UUID accountId) {
+        return dsl.transactionResult(configuration -> {
+            var tx = configuration.dsl();
+            var account = tx.selectFrom(ACCOUNT)
+                    .where(ACCOUNT.ID.eq(accountId).and(ACCOUNT.USER_ID.eq(caller.userId())))
+                    .fetchOne();
+            if (account == null) {
+                throw Status.NOT_FOUND.withDescription("account not found").asRuntimeException();
+            }
+            var session = tx.selectFrom(SESSION)
+                    .where(SESSION.ID.eq(caller.sessionId()).and(SESSION.USER_ID.eq(caller.userId())))
+                    .forUpdate()
+                    .fetchOne();
+            if (session == null) {
+                throw Status.UNAUTHENTICATED
+                        .withDescription("session was revoked")
+                        .asRuntimeException();
+            }
+            session.setAccountId(account.getId());
+            session.update();
+            return new SwitchedAccount(session, accessTokens.issue(caller.userId(), session.getId(), account.getId()));
+        });
+    }
+
+    /// Changes the password of the user of the caller and revokes every other session of it.
+    ///
+    /// @throws io.grpc.StatusRuntimeException PERMISSION_DENIED if the old password is wrong, INVALID_ARGUMENT if
+    ///         the new one is not acceptable or equals the old one
+    public void changePassword(Caller caller, String oldPassword, String newPassword) {
+        var user = dsl.selectFrom(USER).where(USER.ID.eq(caller.userId())).fetchOne();
+        if (user == null) {
+            throw Status.UNAUTHENTICATED.withDescription("user does not exist").asRuntimeException();
+        }
+        if (oldPassword.length() > PasswordHasher.MAX_LENGTH * 4
+                || !passwordHasher.matches(oldPassword, user.getPasswordHash())) {
+            throw Status.PERMISSION_DENIED
+                    .withDescription("old password is wrong")
+                    .asRuntimeException();
+        }
+        if (!PasswordHasher.isAcceptable(newPassword)) {
+            throw invalid("new_password must have between %d and %d characters"
+                    .formatted(PasswordHasher.MIN_LENGTH, PasswordHasher.MAX_LENGTH));
+        }
+        if (newPassword.equals(oldPassword)) {
+            throw invalid("new_password must differ from the old password");
+        }
+        var newHash = passwordHasher.hash(newPassword);
+        dsl.transaction(configuration -> {
+            var tx = configuration.dsl();
+            tx.update(USER)
+                    .set(USER.PASSWORD_HASH, newHash)
+                    .where(USER.ID.eq(caller.userId()))
+                    .execute();
+            tx.deleteFrom(SESSION)
+                    .where(SESSION.USER_ID.eq(caller.userId()).and(SESSION.ID.ne(caller.sessionId())))
+                    .execute();
+        });
+    }
+
     private Authenticated createSession(
             DSLContext tx,
             UserRecord user,
@@ -296,6 +359,9 @@ public class AuthenticationService {
             Instant accessTokenExpireTime,
             String refreshToken,
             Instant refreshTokenExpireTime) {}
+
+    /// The session with its new active account and the access token for it.
+    public record SwitchedAccount(SessionRecord session, AccessTokens.IssuedAccessToken accessToken) {}
 
     private sealed interface Refresh {
         record Done(Authenticated authenticated) implements Refresh {}

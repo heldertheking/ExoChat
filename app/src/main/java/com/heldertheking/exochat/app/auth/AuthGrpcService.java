@@ -5,15 +5,19 @@ import org.springframework.stereotype.Service;
 import com.heldertheking.exochat.auth.v1alpha1.AuthServiceGrpc;
 import com.heldertheking.exochat.auth.v1alpha1.AuthenticateUserRequest;
 import com.heldertheking.exochat.auth.v1alpha1.AuthenticateUserResponse;
+import com.heldertheking.exochat.auth.v1alpha1.ChangePasswordRequest;
+import com.heldertheking.exochat.auth.v1alpha1.ChangePasswordResponse;
 import com.heldertheking.exochat.auth.v1alpha1.RefreshSessionRequest;
 import com.heldertheking.exochat.auth.v1alpha1.RefreshSessionResponse;
 import com.heldertheking.exochat.auth.v1alpha1.RegisterUserRequest;
 import com.heldertheking.exochat.auth.v1alpha1.RegisterUserResponse;
+import com.heldertheking.exochat.auth.v1alpha1.SwitchAccountRequest;
+import com.heldertheking.exochat.auth.v1alpha1.SwitchAccountResponse;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
-/// gRPC adapter of [AuthenticationService]. SwitchAccount and ChangePassword are not implemented yet and answer
-/// UNIMPLEMENTED.
+/// gRPC adapter of [AuthenticationService].
 @Service
 class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
     private final AuthenticationService authentication;
@@ -51,6 +55,37 @@ class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
                 .setSession(AuthMapper.session(result.session(), true))
                 .setTokens(AuthMapper.tokens(result))
                 .build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void switchAccount(SwitchAccountRequest request, StreamObserver<SwitchAccountResponse> responseObserver) {
+        var caller = Caller.current();
+        var sessionName = NameParsing.session("name", request.getName());
+        var accountName = NameParsing.account("account", request.getAccount());
+        caller.requireUser(sessionName.getParent());
+        caller.requireUser(accountName.getParent());
+        if (!sessionName.getPersistenceId().equals(caller.sessionId())) {
+            throw Status.PERMISSION_DENIED
+                    .withDescription("only the session of the caller can be changed")
+                    .asRuntimeException();
+        }
+        var result = authentication.switchAccount(caller, accountName.getPersistenceId());
+        responseObserver.onNext(SwitchAccountResponse.newBuilder()
+                .setSession(AuthMapper.session(result.session(), true))
+                .setAccessToken(result.accessToken().token())
+                .setAccessTokenExpireTime(
+                        AuthMapper.timestamp(result.accessToken().expireTime()))
+                .build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request, StreamObserver<ChangePasswordResponse> responseObserver) {
+        var caller = Caller.current();
+        caller.requireUser(NameParsing.user("name", request.getName()));
+        authentication.changePassword(caller, request.getOldPassword(), request.getNewPassword());
+        responseObserver.onNext(ChangePasswordResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
 

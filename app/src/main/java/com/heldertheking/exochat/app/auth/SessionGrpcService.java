@@ -3,8 +3,6 @@ package com.heldertheking.exochat.app.auth;
 import org.springframework.stereotype.Service;
 
 import com.google.protobuf.Empty;
-import com.heldertheking.exochat.api.identity.SessionName;
-import com.heldertheking.exochat.api.identity.UserName;
 import com.heldertheking.exochat.identity.v1alpha1.DeleteSessionRequest;
 import com.heldertheking.exochat.identity.v1alpha1.GetSessionRequest;
 import com.heldertheking.exochat.identity.v1alpha1.ListSessionsRequest;
@@ -19,7 +17,6 @@ import com.heldertheking.quela.search.QueryParseException;
 import com.heldertheking.quela.search.UnsupportedOperatorException;
 
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 /// Lists and revokes the sessions of the caller. A user only ever sees and revokes its own sessions.
@@ -34,7 +31,7 @@ class SessionGrpcService extends SessionServiceGrpc.SessionServiceImplBase {
     @Override
     public void listSessions(ListSessionsRequest request, StreamObserver<ListSessionsResponse> responseObserver) {
         var caller = Caller.current();
-        var parent = parseUser(request.getParent());
+        var parent = NameParsing.user("parent", request.getParent());
         caller.requireUser(parent);
         try {
             var page = sessions.list(
@@ -61,7 +58,7 @@ class SessionGrpcService extends SessionServiceGrpc.SessionServiceImplBase {
     @Override
     public void getSession(GetSessionRequest request, StreamObserver<Session> responseObserver) {
         var caller = Caller.current();
-        var name = parseSession(request.getName());
+        var name = NameParsing.session("name", request.getName());
         caller.requireUser(name.getParent());
         var row = sessions.find(caller.userId(), name.getPersistenceId())
                 .orElseThrow(() ->
@@ -73,38 +70,12 @@ class SessionGrpcService extends SessionServiceGrpc.SessionServiceImplBase {
     @Override
     public void deleteSession(DeleteSessionRequest request, StreamObserver<Empty> responseObserver) {
         var caller = Caller.current();
-        var name = parseSession(request.getName());
+        var name = NameParsing.session("name", request.getName());
         caller.requireUser(name.getParent());
         if (!sessions.delete(caller.userId(), name.getPersistenceId())) {
             throw Status.NOT_FOUND.withDescription("session not found").asRuntimeException();
         }
         responseObserver.onNext(Empty.getDefaultInstance());
         responseObserver.onCompleted();
-    }
-
-    private static UserName parseUser(String name) {
-        try {
-            return UserName.fromName(name);
-        } catch (IllegalArgumentException e) {
-            throw invalidName("parent", name);
-        }
-    }
-
-    private static SessionName parseSession(String name) {
-        try {
-            var parsed = SessionName.fromName(name);
-            if (parsed.isWildcard()) {
-                throw invalidName("name", name);
-            }
-            return parsed;
-        } catch (IllegalArgumentException e) {
-            throw invalidName("name", name);
-        }
-    }
-
-    private static StatusRuntimeException invalidName(String field, String name) {
-        return Status.INVALID_ARGUMENT
-                .withDescription("invalid %s '%s'".formatted(field, name))
-                .asRuntimeException();
     }
 }
