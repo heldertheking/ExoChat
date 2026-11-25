@@ -14,12 +14,15 @@ option java_multiple_files = true;
 option java_outer_classname = "UserProto";
 option java_package = "com.heldertheking.exochat.identity.v1alpha1";
 
+// Manages users: the root login identity that owns accounts.
 service UserService {
+  // Gets a user.
   rpc GetUser(GetUserRequest) returns (User) {
     option (google.api.http) = {get: "/v1alpha1/{name=users/*}"};
     option (google.api.method_signature) = "name";
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+  // Creates a user (sign-up).
   rpc CreateUser(CreateUserRequest) returns (User) {
     option (google.api.http) = {
       post: "/v1alpha1/users"
@@ -27,6 +30,7 @@ service UserService {
     };
     option (google.api.method_signature) = "user";
   }
+  // Updates a user.
   rpc UpdateUser(UpdateUserRequest) returns (User) {
     option (google.api.http) = {
       patch: "/v1alpha1/{user.name=users/*}"
@@ -34,12 +38,14 @@ service UserService {
     };
     option (google.api.method_signature) = "user,update_mask";
   }
+  // Deletes a user together with its accounts.
   rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1alpha1/{name=users/*}"};
     option (google.api.method_signature) = "name";
   }
 }
 
+// The root login identity. Holds credentials and contact data and owns one or more Accounts.
 message User {
   option (google.api.resource) = {
     type: "exochat.heldertheking.com/User"
@@ -50,7 +56,9 @@ message User {
 
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
+  // Contact and login email. Private, never shown to other users.
   string email = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Contact phone number. Private, never shown to other users.
   string phone_number = 3 [(google.api.field_behavior) = OPTIONAL];
 
   google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];

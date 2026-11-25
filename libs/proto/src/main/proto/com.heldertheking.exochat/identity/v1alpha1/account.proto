@@ -14,19 +14,23 @@ option java_multiple_files = true;
 option java_outer_classname = "AccountProto";
 option java_package = "com.heldertheking.exochat.identity.v1alpha1";
 
+// Manages accounts: the public personas of a user that join servers, add friends and send messages.
 service AccountService {
+  // Lists the accounts of a user.
   rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse) {
     option (google.api.http) = {get: "/v1alpha1/{parent=users/*}/accounts"};
     option (google.api.method_signature) = "parent";
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
+  // Gets an account.
   rpc GetAccount(GetAccountRequest) returns (Account) {
     option (google.api.http) = {get: "/v1alpha1/{name=users/*/accounts/*}"};
     option (google.api.method_signature) = "name";
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
+  // Creates an account for a user.
   rpc CreateAccount(CreateAccountRequest) returns (Account) {
     option (google.api.http) = {
       post: "/v1alpha1/{parent=users/*}/accounts"
@@ -35,6 +39,7 @@ service AccountService {
     option (google.api.method_signature) = "parent,account";
   }
 
+  // Updates an account.
   rpc UpdateAccount(UpdateAccountRequest) returns (Account) {
     option (google.api.http) = {
       patch: "/v1alpha1/{account.name=users/*/accounts/*}"
@@ -43,12 +48,14 @@ service AccountService {
     option (google.api.method_signature) = "account,update_mask";
   }
 
+  // Deletes an account.
   rpc DeleteAccount(DeleteAccountRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1alpha1/{name=users/*/accounts/*}"};
     option (google.api.method_signature) = "name";
   }
 }
 
+// The public persona of a user.
 message Account {
   option (google.api.resource) = {
     type: "exochat.heldertheking.com/Account"
@@ -57,6 +64,7 @@ message Account {
     plural: "accounts"
   };
 
+  // Presence of an account. Live presence may be kept outside the database and filled in on read.
   enum AccountStatus {
     ACCOUNT_STATUS_UNSPECIFIED = 0;
     ACCOUNT_STATUS_ONLINE = 1;
@@ -67,6 +75,7 @@ message Account {
 
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
+  // Unique handle. Chosen once and never changed.
   string username = 2 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = IMMUTABLE
@@ -74,6 +83,7 @@ message Account {
   // Display name starts equal to initial username.
   string display_name = 3 [(google.api.field_behavior) = REQUIRED];
 
+  // Location of the avatar image.
   string avatar_url = 4 [(google.api.field_behavior) = OPTIONAL];
   AccountStatus status = 5 [(google.api.field_behavior) = OPTIONAL];
 

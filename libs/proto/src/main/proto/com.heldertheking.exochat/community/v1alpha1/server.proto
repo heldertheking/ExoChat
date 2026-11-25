@@ -14,18 +14,22 @@ option java_multiple_files = true;
 option java_outer_classname = "ServerProto";
 option java_package = "com.heldertheking.exochat.community.v1alpha1";
 
+// Manages servers: communities that group channels, members and roles.
 service ServerService {
+  // Lists servers.
   rpc ListServers(ListServersRequest) returns (ListServersResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1alpha1/servers"};
   }
 
+  // Gets a server.
   rpc GetServer(GetServerRequest) returns (Server) {
     option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1alpha1/{name=servers/*}"};
     option (google.api.method_signature) = "name";
   }
 
+  // Creates a server owned by the authenticated account.
   rpc CreateServer(CreateServerRequest) returns (Server) {
     option (google.api.http) = {
       post: "/v1alpha1/servers"
@@ -34,6 +38,7 @@ service ServerService {
     option (google.api.method_signature) = "server";
   }
 
+  // Updates a server.
   rpc UpdateServer(UpdateServerRequest) returns (Server) {
     option (google.api.http) = {
       patch: "/v1alpha1/{server.name=servers/*}"
@@ -42,11 +47,13 @@ service ServerService {
     option (google.api.method_signature) = "server,update_mask";
   }
 
+  // Deletes a server with its channels, members, roles and invites.
   rpc DeleteServer(DeleteServerRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1alpha1/{name=servers/*}"};
     option (google.api.method_signature) = "name";
   }
 
+  // Transfers ownership of a server to another account.
   rpc TransferServer(TransferServerRequest) returns (Server) {
     option (google.api.http) = {
       post: "/v1alpha1/{name=servers/*}:transfer"
@@ -56,6 +63,7 @@ service ServerService {
   }
 }
 
+// A community that groups channels, members and roles.
 message Server {
   option (google.api.resource) = {
     type: "exochat.heldertheking.com/Server"
@@ -66,9 +74,12 @@ message Server {
 
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
+  // Name shown in the UI. Not an identifier, use the resource name for that.
   string display_name = 2 [(google.api.field_behavior) = REQUIRED];
 
+  // Location of the banner image.
   string banner_url = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Location of the icon image.
   string icon_url = 4 [(google.api.field_behavior) = OPTIONAL];
 
   // Resource name of the owner's account, derived from the authenticated caller on creation.

@@ -55,7 +55,7 @@ service InviteService {
   }
 }
 
-// A shareable join code for a server. {invite} is the short code.
+// A shareable join code for a server. The invite name (servers/{server}/invites/{invite}, UUIDv7) is the shareable token.
 message Invite {
   option (google.api.resource) = {
     type: "exochat.heldertheking.com/Invite"

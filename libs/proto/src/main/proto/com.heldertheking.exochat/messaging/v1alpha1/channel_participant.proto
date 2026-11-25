@@ -14,7 +14,7 @@ option java_multiple_files = true;
 option java_outer_classname = "ChannelParticipantProto";
 option java_package = "com.heldertheking.exochat.messaging.v1alpha1";
 
-// Manages who takes part in DIRECT and GROUP_DIRECT channels and their read position.
+// Manages who takes part in DIRECT and GROUP channels and their read position.
 service ChannelParticipantService {
   // Lists participants.
   rpc ListChannelParticipants(ListChannelParticipantsRequest) returns (ListChannelParticipantsResponse) {
@@ -55,7 +55,7 @@ service ChannelParticipantService {
   }
 }
 
-// An account's participation in a direct or group direct channel.
+// An account's participation in a direct or group channel.
 message ChannelParticipant {
   option (google.api.resource) = {
     type: "exochat.heldertheking.com/ChannelParticipant"

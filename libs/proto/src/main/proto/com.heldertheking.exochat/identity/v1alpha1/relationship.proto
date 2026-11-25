@@ -14,19 +14,23 @@ option java_multiple_files = true;
 option java_outer_classname = "RelationshipProto";
 option java_package = "com.heldertheking.exochat.identity.v1alpha1";
 
+// Manages the social links (friends, requests, blocks) of an account to other accounts.
 service RelationshipService {
+  // Lists the relationships of an account.
   rpc ListRelationships(ListRelationshipsRequest) returns (ListRelationshipsResponse) {
     option (google.api.http) = {get: "/v1alpha1/{parent=users/*/accounts/*}/relationships"};
     option (google.api.method_signature) = "parent";
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
+  // Gets a relationship.
   rpc GetRelationship(GetRelationshipRequest) returns (Relationship) {
     option (google.api.http) = {get: "/v1alpha1/{name=users/*/accounts/*/relationships/*}"};
     option (google.api.method_signature) = "name";
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
+  // Creates a relationship, for example a friend request to another account.
   rpc CreateRelationship(CreateRelationshipRequest) returns (Relationship) {
     option (google.api.http) = {
       post: "/v1alpha1/{parent=users/*/accounts/*}/relationships"
@@ -35,6 +39,7 @@ service RelationshipService {
     option (google.api.method_signature) = "parent,relationship";
   }
 
+  // Updates a relationship.
   rpc UpdateRelationship(UpdateRelationshipRequest) returns (Relationship) {
     option (google.api.http) = {
       patch: "/v1alpha1/{relationship.name=users/*/accounts/*/relationships/*}"
@@ -43,11 +48,13 @@ service RelationshipService {
     option (google.api.method_signature) = "relationship,update_mask";
   }
 
+  // Deletes a relationship, for example to unfriend or unblock.
   rpc DeleteRelationship(DeleteRelationshipRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1alpha1/{name=users/*/accounts/*/relationships/*}"};
     option (google.api.method_signature) = "name";
   }
 
+  // Accepts an incoming friend request.
   rpc AcceptRelationship(AcceptRelationshipRequest) returns (Relationship) {
     option (google.api.http) = {
       post: "/v1alpha1/{name=users/*/accounts/*/relationships/*}:accept"
@@ -56,6 +63,7 @@ service RelationshipService {
     option (google.api.method_signature) = "name";
   }
 
+  // Rejects an incoming friend request.
   rpc RejectRelationship(RejectRelationshipRequest) returns (Relationship) {
     option (google.api.http) = {
       post: "/v1alpha1/{name=users/*/accounts/*/relationships/*}:reject"
@@ -64,6 +72,7 @@ service RelationshipService {
     option (google.api.method_signature) = "name";
   }
 
+  // Blocks the target account.
   rpc BlockRelationship(BlockRelationshipRequest) returns (Relationship) {
     option (google.api.http) = {
       post: "/v1alpha1/{name=users/*/accounts/*/relationships/*}:block"
@@ -73,6 +82,7 @@ service RelationshipService {
   }
 }
 
+// A social link from the owning account to a target account.
 message Relationship {
   option (google.api.resource) = {
     type: "exochat.heldertheking.com/Relationship"
@@ -81,6 +91,7 @@ message Relationship {
     plural: "relationships"
   };
 
+  // State of a relationship from the point of view of the owning account.
   enum RelationshipType {
     RELATIONSHIP_TYPE_UNSPECIFIED = 0;
     RELATIONSHIP_TYPE_FRIEND = 1;
@@ -91,6 +102,7 @@ message Relationship {
 
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
+  // Resource name of the other account.
   string target_account = 2 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = IMMUTABLE,

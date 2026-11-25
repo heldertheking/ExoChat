@@ -12,7 +12,7 @@
 | Member | Account-server relationship (`servers/{server}/members/{member}`), nickname, role assignments |
 | Role | Server-defined permission bundle (bitmask) |
 | Invite | Shareable join code for a server |
-| Channel | Unified conversation container: DIRECT, GROUP_DIRECT or SERVER_TEXT. Canonical name `channels/{channel}`, server channels also addressable as `servers/{server}/channels/{channel}` |
+| Channel | Unified conversation container, with a scope (DIRECT, GROUP, SERVER) and a type (TEXT, VOICE, FORUM, STAGE, ANNOUNCEMENT). Canonical name `channels/{channel}`, server channels also addressable as `servers/{server}/channels/{channel}` |
 | ChannelParticipant | Participant and read cursor of a direct or group channel |
 | ChannelOverwrite | Per-channel allow/deny permission bitmasks for a Role or Account |
 | Message | Author, content, optional reply, timestamps (`channels/{channel}/messages/{message}`) |

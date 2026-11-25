@@ -83,6 +83,14 @@ message Message {
 
   google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
   google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Client-generated UUID that makes sending idempotent. Retrying CreateMessage with the same id for the same
+  // author returns the original message instead of creating a duplicate. Also lets a client match the message it
+  // showed optimistically with the stored one.
+  string client_message_id = 7 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
 }
 
 message ListMessagesRequest {

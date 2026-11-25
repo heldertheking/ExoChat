@@ -19,12 +19,15 @@ All ids are UUIDv7 (ADR-011); `-` in the last segment is the wildcard (a wildcar
 | `community` | `MemberName` | `servers/{server}/members/{member}` |
 | `community` | `RoleName` | `servers/{server}/roles/{role}` |
 | `community` | `InviteName` | `servers/{server}/invites/{invite}` |
-| `messaging` | `ChannelName` | `channels/{channel}` (canonical; the proto also accepts the alias `servers/{server}/channels/{channel}`, not modelled here yet) |
+| `messaging` | `ChannelName` | `channels/{channel}` (canonical name of every channel) |
+| `messaging` | `ServerChannelName` | `servers/{server}/channels/{channel}` (alias of a server channel, same id as the canonical name) |
 | `messaging` | `MessageName` | `channels/{channel}/messages/{message}`: the only way to address a message |
 | `messaging` | `ChannelParticipantName` | `channels/{channel}/participants/{participant}` (direct channels) |
 | `messaging` | `ChannelOverwriteName` | `channels/{channel}/overwrites/{overwrite}` (server channels) |
 
 Only the names exist so far, not the domain objects. A member or participant refers to its account with the string `users/{user}/accounts/{account}` (parse it with `AccountName.fromName`); that is a reference, not part of the member name.
+
+A channel has two names. `ChannelName.fromAnyName(s)` accepts either and returns the canonical one, `ServerChannelName#toChannelName()` and `ChannelName#inServer(server)` convert between them. Responses and child resources (messages, participants, overwrites) always use the canonical name.
 
 ```java
 var user = UserName.of(UuidV7.next());
